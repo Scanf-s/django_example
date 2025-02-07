@@ -5,7 +5,7 @@ from jwt.manager import RefreshTokenManager
 
 class RefreshToken(TimeStampModel):
     token_id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(to="users.User", on_delete=models.CASCADE)
+    user = models.ForeignKey(to="user.User", on_delete=models.CASCADE)
 
     token = models.CharField(max_length=255)
     expired = models.BooleanField(default=False)

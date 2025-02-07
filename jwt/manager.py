@@ -1,12 +1,11 @@
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.db import models
 import jwt
 from django.conf import settings
 from typing import TYPE_CHECKING, Optional
+from user.models import User
 
 if TYPE_CHECKING:
-    from user.models import User
     from jwt.models import RefreshToken
 
 class RefreshTokenManager(models.Manager):
