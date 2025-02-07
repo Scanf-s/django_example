@@ -5,7 +5,6 @@ class UserRole(models.TextChoices):
     ADMIN = 'admin'
     USER = 'user'
 
-# Create your models here.
 class User(AbstractBaseUser):
     email = models.EmailField(unique=True)
     role = models.CharField(choices=UserRole.choices, default=UserRole.USER, max_length=10)

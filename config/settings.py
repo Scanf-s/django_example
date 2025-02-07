@@ -33,6 +33,7 @@ LIBRARIES = [
 ]
 DOMAINS = [
     "user.apps.UserConfig",
+    "jwt.apps.JwtConfig",
 ]
 INSTALLED_APPS = ORIGIN_APPS + LIBRARIES + DOMAINS
 
