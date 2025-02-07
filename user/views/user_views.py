@@ -34,7 +34,8 @@ class UserView(APIView):
         serializer: UserResponseSerializer = UserResponseSerializer(instance=user_queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-    def post(self, request): # 사용자 생성
+    def post(self, request): # 사용자 생성 (Register)
+        # Admin 계정은 데이터베이스에 직접 생성해주세요
         user_data: Dict[str, str] = request.data
         serializer: UserCreateSerializer = UserCreateSerializer(data=user_data)
         serializer.is_valid(raise_exception=True)
