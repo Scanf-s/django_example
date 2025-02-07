@@ -92,7 +92,7 @@ paths:
   /users/{user_id}:
     get:
       summary: USER_ID를 사용하여 특정 도서관 사용자 정보 조회
-      description: Admin 사용자의 경우에는 아무나 조회가 가능하지만, 일반 사용자의 경우에는 봉
+      description: Admin 사용자의 경우에는 아무나 조회가 가능하지만, 일반 사용자의 경우에는 본인 정보만 볼 수 있습니다.
       tags: [users]
       security:
         - bearerAuth: []
