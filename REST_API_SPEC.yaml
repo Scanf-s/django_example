@@ -591,6 +591,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /auth/login:
+    post:
+      summary: 로그인 요청 엔드포인트 (JWT 토큰 발급 요청)
+      tags: [token]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenCreate'
+      responses:
+        '200':
+          description: 성공적으로 Access/Refresh 토큰을 발급함
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: 올바르지 않은 로그인 정보를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: 로그아웃 엔드포인트 (JWT 토큰 폐기 요청)
+      tags: [token]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+      responses:
+        '204':
+          description: 성공적으로 토큰을 폐기한 경우
+        '400':
+          description: 올바르지 않은 토큰을 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /token/refresh:
     post:
       summary: 유효한 Refresh 토큰을 사용해서 Access 토큰 재발급
@@ -747,6 +811,15 @@ components:
         quantity:
           type: integer
           description: 대출 수
+    TokenCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 사용자 Email
+        password:
+          type: string
+          description: 사용자 패스워드
     TokenRefresh:
       type: object
       properties:
@@ -759,6 +832,9 @@ components:
         access_token:
           type: string
           description: ACCESS TOKEN
+        refresh_token:
+          type: string
+          description: REFRESH TOKEN
     Error:
       type: object
       properties:

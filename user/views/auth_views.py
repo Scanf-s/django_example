@@ -3,6 +3,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from common.exceptions import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
+from typing import Dict
 
 from jwt.authentication import JWTAuthentication
 from jwt.manager import TokenManager
@@ -19,9 +20,9 @@ class LoginView(APIView):
     authentication_classes = []
 
     def post(self, request) -> Response:
-        email = request.data.get("email")
-        password = request.data.get("password")
-        data = UserManager.login(email=email, password=password)
+        email: str = request.data.get("email")
+        password: str = request.data.get("password")
+        data: Dict[str, str] = UserManager.login(email=email, password=password)
         return Response(data=data, status=status.HTTP_200_OK)
 
 @exception_handler
@@ -33,6 +34,6 @@ class LogoutView(APIView):
     authentication_classes = [JWTAuthentication]
 
     def post(self, request) -> Response:
-        refresh_token = request.data.get("refresh_token")
+        refresh_token: str = request.data.get("refresh_token")
         TokenManager().discard_refresh(user=request.user, token=refresh_token)
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -11,4 +11,4 @@ class TokenRefreshView(APIView):
     def post(self, request) -> Response:
         refresh_token = request.data.get("refresh_token")
         access_token: str = Token.objects.renew(refresh_token=refresh_token)
-        return Response(data={"access_token": access_token}, status=status.HTTP_200_OK)
+        return Response(data={"access_token": access_token, "refresh_token": refresh_token}, status=status.HTTP_200_OK)
