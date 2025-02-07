@@ -54,11 +54,11 @@ class TokenManager(models.Manager):
         except jwt.exceptions.InvalidTokenError:
             return False
 
-    def discard_refresh(self, token: str) -> None:
+    def discard_refresh(self, user: User, token: str) -> None:
         """
         Refresh 토큰 폐기하는 함수
         """
-        jwt_token: Token = self.filter(token=token).first()
+        jwt_token: Token = self.filter(user=user, token=token).first()
         if jwt_token:
             jwt_token.delete()
         else:
