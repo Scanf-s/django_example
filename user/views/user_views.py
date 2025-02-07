@@ -10,15 +10,22 @@ from user.permissions import IsAdminUser
 from user.models import User, UserRole
 from user.serializers.UserCreateSerializer import UserCreateSerializer
 from user.serializers.UserResponseSerializer import UserResponseSerializer
+from jwt.authentication import JWTAuthentication
 
 
 class UserView(APIView):
 
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [IsAdminUser]
+            return [IsAdminUser()]
         else:
-            return [AllowAny]
+            return [AllowAny()]
+
+    def get_authenticators(self):
+        if self.request.method == 'GET':
+            return [JWTAuthentication()]
+        else:
+            return []
 
     def get(self, request): # 사용자 리스트
         user_queryset: QuerySet = User.objects.all()
