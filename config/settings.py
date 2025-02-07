@@ -32,7 +32,7 @@ LIBRARIES = [
 
 ]
 DOMAINS = [
-
+    "user.apps.UserConfig",
 ]
 INSTALLED_APPS = ORIGIN_APPS + LIBRARIES + DOMAINS
 
