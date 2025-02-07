@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Optional
 from user.models import User
 
 if TYPE_CHECKING:
-    from jwt.models import RefreshToken
+    from jwt.models import Token
 
-class RefreshTokenManager(models.Manager):
+class TokenManager(models.Manager):
 
     TOKEN_TYPES = ["ACCESS", "REFRESH"]
 
@@ -46,7 +46,7 @@ class RefreshTokenManager(models.Manager):
             jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
             return True
         except jwt.exceptions.ExpiredSignatureError:
-            token_obj: Optional[RefreshToken] = self.filter(token=token).first()
+            token_obj: Optional[Token] = self.filter(token=token).first()
             if token_obj:
                 token_obj.expired = True
                 token_obj.save()
@@ -58,7 +58,7 @@ class RefreshTokenManager(models.Manager):
         """
         Refresh 토큰 폐기하는 함수
         """
-        jwt_token: RefreshToken = self.filter(token=token).first()
+        jwt_token: Token = self.filter(token=token).first()
         if jwt_token:
             jwt_token.delete()
         else:

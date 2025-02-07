@@ -115,6 +115,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # JWT Settings
+AUTH_HEADER=os.getenv("AUTH_HEADER")
 ACCESS_TOKEN_EXPIRE_TIME = timezone.timedelta(days=1)
 REFRESH_TOKEN_EXPIRE_TIME = timezone.timedelta(days=7)
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
@@ -126,6 +127,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "jwt.authentication.JWTAuthentication", # Custom JWT Authentication class 사용
     ],
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",  # 깔끔하게 JSON만 전달 (DRF 웹페이지 안씀)

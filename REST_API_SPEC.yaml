@@ -23,6 +23,8 @@ tags:
     description: 도서
   - name: loans
     description: 도서 대출 정보
+  - name: token
+    description: JWT 토큰 관련 도메인
 ########################################################################################################################
 paths:
   /users:
@@ -588,6 +590,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /token/refresh:
+    post:
+      summary: 유효한 Refresh 토큰을 사용해서 Access 토큰 재발급
+      tags: [token]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+      responses:
+        '200':
+          description: 성공적으로 Access 토큰을 재발급함
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: 올바르지 않은 Refresh 토큰을 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 ########################################################################################################################
 components:
   securitySchemes:
@@ -715,6 +747,18 @@ components:
         quantity:
           type: integer
           description: 대출 수
+    TokenRefresh:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          description: REFRESH TOKEN
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: ACCESS TOKEN
     Error:
       type: object
       properties:
