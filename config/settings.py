@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+from django.utils import timezone
 
 
 # Load environment variables
@@ -12,12 +13,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+AUTH_USER_MODEL = "user.User"
 
 # Application definition
 ORIGIN_APPS = [
@@ -29,7 +28,7 @@ ORIGIN_APPS = [
     'django.contrib.staticfiles',
 ]
 LIBRARIES = [
-
+    "rest_framework",
 ]
 DOMAINS = [
     "user.apps.UserConfig",
@@ -114,3 +113,21 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# JWT Settings
+ACCESS_TOKEN_EXPIRE_TIME = timezone.timedelta(days=1)
+REFRESH_TOKEN_EXPIRE_TIME = timezone.timedelta(days=7)
+JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
+# REST FRAMEWORK Settings
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+    ],
+    "DEFAULT_RENDERER_CLASSES": (
+        "rest_framework.renderers.JSONRenderer",  # 깔끔하게 JSON만 전달 (DRF 웹페이지 안씀)
+    ),
+}
