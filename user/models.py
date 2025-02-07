@@ -6,11 +6,8 @@ class UserRole(models.TextChoices):
     USER = 'user'
 
 class User(AbstractBaseUser):
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.id = None
-
     email = models.EmailField(unique=True)
+    username = models.CharField(max_length=30, null=True)
     role = models.CharField(choices=UserRole.choices, default=UserRole.USER, max_length=10)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

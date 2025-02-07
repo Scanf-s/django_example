@@ -92,6 +92,7 @@ paths:
   /users/{user_id}:
     get:
       summary: USER_ID를 사용하여 특정 도서관 사용자 정보 조회
+      description: Admin 사용자의 경우에는 아무나 조회가 가능하지만, 일반 사용자의 경우에는 봉
       tags: [users]
       security:
         - bearerAuth: []
@@ -631,12 +632,12 @@ components:
     UserCreate:
       type: object
       properties:
-        username:
-          type: string
-          description: 사용자 이름
         email:
           type: string
           description: 사용자 Email
+        username:
+          type: string
+          description: 사용자 이름
         password:
           type: string
           description: 사용자 패스워드
@@ -647,12 +648,12 @@ components:
           type: integer
           format: int64
           description: 사용자 ID
-        username:
-          type: string
-          description: 사용자 이름
         email:
           type: string
           description: 사용자@email
+        username:
+          type: string
+          description: 사용자 이름
     BookCreate:
       type: object
       properties:
