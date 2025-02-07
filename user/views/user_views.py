@@ -1,6 +1,7 @@
 from typing import Dict
 
 from django.db.models.query import QuerySet
+from common.exceptions import exception_handler
 from rest_framework import status
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.views import APIView
@@ -13,6 +14,7 @@ from user.serializers.UserResponseSerializer import UserResponseSerializer
 from jwt.authentication import JWTAuthentication
 
 
+@exception_handler
 class UserView(APIView):
 
     def get_permissions(self):
@@ -40,6 +42,7 @@ class UserView(APIView):
         return Response(status=status.HTTP_201_CREATED)
 
 
+@exception_handler
 class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -58,12 +61,12 @@ class UserDetailView(APIView):
             raise ValueError("user_id is required")
 
         if request.user.role == UserRole.ADMIN: # ADMIN 사용자의 경우에는, 원하는 사용자 정보를 확인할 수 있음
-            data = self.get_user_data(user_id=user_id)
+            data: Dict[str, str] = self.get_user_data(user_id=user_id)
             return Response(data=data, status=status.HTTP_200_OK)
 
         else: # 일반 사용자의 경우에는 본인것만 가능 -> 토큰에 있는 user_id 꺼내서 확인
             if request.user.id != user_id:
                 raise PermissionDenied("Unauthorized access")
 
-            data = self.get_user_data(user_id=user_id)
+            data: Dict[str, str] = self.get_user_data(user_id=user_id)
             return Response(data=data, status=status.HTTP_200_OK)
