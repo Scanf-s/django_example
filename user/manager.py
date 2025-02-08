@@ -1,12 +1,15 @@
-from django.db import models
 from typing import TYPE_CHECKING, Dict
+
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.exceptions import ValidationError
+from django.db import models
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+
 from jwt.manager import TokenManager
 
 if TYPE_CHECKING:
     from user.models import User
+
 
 class UserManager(models.Manager):
 
@@ -23,12 +26,11 @@ class UserManager(models.Manager):
 
         # access, refresh 토큰 생성
         token_manager: TokenManager = TokenManager()
-        access_token: str = token_manager.create_token(user=user, token_type=token_manager.TOKEN_TYPES[0])
-        refresh_token: str = token_manager.create_token(user=user, token_type=token_manager.TOKEN_TYPES[1])
+        access_token: str = token_manager.create_token(
+            user=user, token_type=token_manager.TOKEN_TYPES[0]
+        )
+        refresh_token: str = token_manager.create_token(
+            user=user, token_type=token_manager.TOKEN_TYPES[1]
+        )
 
-        return {
-            "access_token": access_token,
-            "refresh_token": refresh_token
-        }
-
-
+        return {"access_token": access_token, "refresh_token": refresh_token}

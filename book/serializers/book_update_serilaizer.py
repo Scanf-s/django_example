@@ -4,16 +4,9 @@ from typing import List
 from rest_framework import serializers
 
 from book.models import Book, Tag
-from book.serializers.tag_serializer import TagSerializer
 
 
-class BookCreateSerializer(serializers.ModelSerializer):
-    isbn = serializers.CharField(max_length=13)
-    title = serializers.CharField(max_length=50)
-    author = serializers.CharField(max_length=50)
-    description = serializers.CharField(max_length=1000)
-    stock = serializers.IntegerField()
-    tags = TagSerializer(many=True)
+class BookUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
@@ -26,7 +19,11 @@ class BookCreateSerializer(serializers.ModelSerializer):
         if not re.fullmatch(r"^[0-9]{13}$", value):
             raise serializers.ValidationError("invalid isbn")
 
-        if Book.objects.filter(isbn=value).exists():
+        if (
+            Book.objects.filter(isbn=value)
+            .exclude(book_id=self.instance.book_id)
+            .exists()
+        ):
             raise serializers.ValidationError("Book isbn already exists (duplicate)")
 
         return value
@@ -61,12 +58,16 @@ class BookCreateSerializer(serializers.ModelSerializer):
     def validate_tags(self, value):
         return value
 
-    def create(self, validated_data):
-        tags: List = validated_data.pop("tags", [])
-        book: Book = Book.objects.create_book(request_body=validated_data)
+    def update(self, instance, validated_data):
+        tags: List = validated_data.pop("tags", None)
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
 
-        for tag in tags:
-            data, _ = Tag.objects.get_or_create(name=tag)
-            book.tags.add(data)
-
-        return book
+        if tags is not None:
+            # 기존 태그 전부 제거 후 새로 설정
+            instance.tags.clear()
+            for tag in tags:
+                data, _ = Tag.objects.get_or_create(name=tag)
+                instance.tags.add(data)
+        return instance

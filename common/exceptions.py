@@ -1,11 +1,12 @@
 import functools
-import jwt
-from django.core.exceptions import (
-    ValidationError, ObjectDoesNotExist
-)
+
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.utils import IntegrityError
-from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.response import Response
+
+import jwt
+
 
 def exception_handler(cls):
     """
@@ -27,7 +28,10 @@ def exception_handler(cls):
         def wrap_method(func, *args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except (jwt.exceptions.ExpiredSignatureError, jwt.exceptions.InvalidTokenError) as e:
+            except (
+                jwt.exceptions.ExpiredSignatureError,
+                jwt.exceptions.InvalidTokenError,
+            ) as e:
                 return Response(
                     data={"error": "InvalidTokenError", "error_message": str(e)},
                     status=status.HTTP_401_UNAUTHORIZED,
