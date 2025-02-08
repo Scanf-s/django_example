@@ -1,4 +1,6 @@
 from django.db import models
+
+from book.managers.book_manager import BookManager
 from common.models import TimeStampModel
 
 class Book(TimeStampModel):
@@ -10,6 +12,8 @@ class Book(TimeStampModel):
     stock = models.IntegerField()
 
     tags = models.ManyToManyField(to="book.Tag", through="book.BookTag", related_name="books")
+
+    objects = BookManager()
 
     class Meta:
         db_table = "book"

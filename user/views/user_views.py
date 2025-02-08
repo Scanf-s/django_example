@@ -9,8 +9,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from user.permissions import IsAdminUser
 from user.models import User, UserRole
-from user.serializers.UserCreateSerializer import UserCreateSerializer
-from user.serializers.UserResponseSerializer import UserResponseSerializer
+from user.serializers.user_create_serializer import UserCreateSerializer
+from user.serializers.user_response_serializer import UserResponseSerializer
 from jwt.authentication import JWTAuthentication
 
 
