@@ -10,6 +10,13 @@ class LoanCreateSerializer(serializers.ModelSerializer):
         model = Loan
         fields = ["book", "quantity"]
 
+    def validate(self, attrs):
+        book: Book = attrs.get("book")
+        quantity: int = attrs.get("quantity")
+        if book.stock < quantity:
+            raise serializers.ValidationError("Not enough stock")
+        return attrs
+
     @transaction.atomic
     def create(self, validated_data) -> Loan:
         new_loan: Loan = Loan.objects.create_new_loan(

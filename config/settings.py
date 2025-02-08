@@ -35,6 +35,7 @@ DOMAINS = [
     "common.apps.CommonConfig",
     "book.apps.BookConfig",
     "loan.apps.LoanConfig",
+    "tag.apps.TagConfig",
 ]
 INSTALLED_APPS = ORIGIN_APPS + LIBRARIES + DOMAINS
 

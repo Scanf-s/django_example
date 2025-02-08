@@ -21,6 +21,8 @@ tags:
     description: 도서관 사용자
   - name: books
     description: 도서
+  - name: tags
+    description: 도서 태그
   - name: loans
     description: 도서 대출 정보
   - name: token
@@ -101,7 +103,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: 성공적으로 도서관 사용자 정보를 조회한 경우
@@ -227,7 +229,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: 성공적으로 도서 정보를 조회한 경우
@@ -276,7 +278,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       requestBody:
         description: 도서 정보 수정 시 필요한 정보
         content:
@@ -328,7 +330,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       requestBody:
         description: 도서 정보 수정 시 필요한 정보
         content:
@@ -380,7 +382,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '204':
           description: 성공적으로 도서 정보를 삭제한 경우
@@ -409,10 +411,278 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /books/{book_id}/tags:
+    get:
+      summary: 해당 도서의 태그 목록 가져오기
+      tags: [ books ]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 성공적으로 도서 태그 목록를 가져오는 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagResponse'
+
+  /tags:
+    get:
+      summary: 전체 태그 리스트 조회
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: 성공적으로 태그 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagResponse'
+        '204':
+          description: 데이터베이스에 태그 정보가 하나도 없는 경우
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: 태그 생성
+      tags: [ tags ]
+      requestBody:
+        required: true
+        description: 태그 생성 시 필요한 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+      responses:
+        '201':
+          description: 성공적으로 태그를 생성한 경우
+        '400':
+          description: 올바르지 않은 태그 이름을 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tags/{tag_id}:
+    get:
+      summary: TAG_ID를 사용하여 특정 대출 정보 조회
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 성공적으로 태그 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '400':
+          description: 올바르지 않은 TAG_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: TAG_ID에 해당하는 대출 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: 태그 정보 수정 (관리자만 접근 가능)
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+      responses:
+        '200':
+          description: 성공적으로 태그 정보를 수정한 경우
+        '400':
+          description: 올바르지 않은 태그 정보를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: TAG_ID에 해당하는 태그 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: 태그 삭제 (관리자만 접근 가능)
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 성공적으로 태그 정보를 삭제한 경우
+        '400':
+          description: 올바르지 않은 TAG_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: TAG_ID에 해당하는 태그 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
   /loans:
+    get:
+      summary: 대출 리스트 조회
+      tags: [ loans ]
+      description: 본인의 대출 데이터를 가져옵니다. 만약 요청한 사용자가 관리자인 경우, 데이터베이스에 존재하는 모든 대출 리스트를 반환합니다.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: 성공적으로 도서 대출 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
       summary: 도서 대출 생성
       tags: [ loans ]
+      description:
+        도서 대출 정보를 생성하는 API입니다.
+        JWT 토큰 Payload에 존재하는 user_id를 사용하여 어떤 사용자가 대출을 수행하는지 식별할 수 있으므로 request body에 넣지 않습니다.
       security:
         - bearerAuth: [ ]
       requestBody:
@@ -425,7 +695,7 @@ paths:
         '201':
           description: 성공적으로 도서 대출 정보를 생성한 경우
         '400':
-          description: 올바르지 않은 대출 정보를 제공한 경우
+          description: 올바르지 않은 대출 정보를 제공한 경우, 서버에 저장된 도서의 수량보다 더 많은 수량으로 요청을 하는 경우, ...
           content:
             application/json:
               schema:
@@ -460,7 +730,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: 성공적으로 대출 정보를 조회한 경우
@@ -500,8 +770,10 @@ paths:
                 $ref: '#/components/schemas/Error'
 
     patch:
-      summary: 대출 일부 정보 수정 (반납 등..)
+      summary: 대출 반납 (대출 정보 수정)
       tags: [ loans ]
+      description: 대출 반납 요청 시 quantity를 함께 담아 요청합니다. 해당 quantity 값은 서버측의 quantity 값과의 차이를 식별하기 위해 검증하는 값으로, 데이터베이스의 무결성을 위해 필요합니다.
+        quantity가 데이터베이스에 존재하는 값과 일치한다면 is_returned 필드가 true로 변경됩니다.
       security:
         - bearerAuth: []
       parameters:
@@ -509,7 +781,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       requestBody:
         required: true
         content:
@@ -550,43 +822,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /loans/user:
-    get:
-      summary: 본인의 전체 대출 정보 조회
-      description: JWT Token payload에 존재하는 user id를 사용하여 사용자를 식별합니다.
-      tags: [loans]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: 성공적으로 조회하였으며 본인의 대출정보가 존재하는 경우
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LoanResponse'
-        '204':
-          description: 본인의 대출정보가 존재하지 않는 경우
-        '401':
-          description: ACCESS TOKEN이 제공되지 않은 경우
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: 해당 자원에 대한 접근 권한이 없는 경우
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: 백엔드 서버에서 오류가 발생한 경우
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /loans/books/{book_id}:
     get:
       summary: BOOK_ID를 사용하여 특정 도서의 대출 정보 조회
@@ -598,7 +833,7 @@ paths:
           in: path
           required: true
           schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: 성공적으로 특정 도서의 대출 정보를 조회한 경우
@@ -765,6 +1000,7 @@ components:
         username:
           type: string
           description: 사용자 이름
+
     BookCreate:
       type: object
       properties:
@@ -784,6 +1020,11 @@ components:
           type: integer
           format: int64
           description: 재고 수
+        tags:
+          type: array
+          items:
+            type: integer
+            description: 도서 태그 ID
     BookResponse:
       type: object
       properties:
@@ -808,6 +1049,11 @@ components:
           type: integer
           format: int64
           description: 재고 수
+        tags:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/TagResponse'
     BookUpdate:
       type: object
       properties:
@@ -827,13 +1073,10 @@ components:
           type: integer
           format: int64
           description: 재고 수
+
     LoanCreate:
       type: object
       properties:
-        user_id:
-          type: integer
-          format: int64
-          description: 사용자 ID
         book_id:
           type: integer
           format: int64
@@ -860,12 +1103,16 @@ components:
           type: integer
           format: int64
           description: 대출 수
+        is_returned:
+          type: boolean
+          description: 반납 여부
     LoanUpdate:
       type: object
       properties:
         quantity:
           type: integer
           description: 대출 수
+
     TokenCreate:
       type: object
       properties:
@@ -890,6 +1137,24 @@ components:
         refresh_token:
           type: string
           description: REFRESH TOKEN
+
+    TagResponse:
+      type: object
+      properties:
+        tag_id:
+          type: integer
+          format: int64
+          description: 태그 ID
+        name:
+          type: string
+          description: 태그 이름
+    TagCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 태그 이름
+
     Error:
       type: object
       properties:

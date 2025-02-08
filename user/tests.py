@@ -164,5 +164,6 @@ class UserTestCase(APITestCase):
         self.assertIn("id", response.data)
 
     def tearDown(self):
+        Token.objects.all().delete()
         User.objects.all().delete()
         return super().tearDown()

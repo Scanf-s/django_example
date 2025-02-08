@@ -46,7 +46,7 @@ class BookDetailView(APIView):
     @custom_exception_handler
     def get(self, request, **kwargs) -> Response:
         """
-        book_id로 도서 정보 조회
+        book_id로 도서 정보 조회 -> quantity 여부에 따라 대출 가능 여부 처리 가능
         """
         book: Book = Book.objects.filter(book_id=kwargs.get("book_id")).first()
         if not book:

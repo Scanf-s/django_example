@@ -3,21 +3,21 @@ from typing import List
 
 from rest_framework import serializers
 
-from book.models import Book, Tag
-from book.serializers.tag_serializer import TagSerializer
+from book.models import Book
+from tag.models import Tag
+from tag.serializers.tag_serializer import TagSerializer
 
 
 class BookCreateSerializer(serializers.ModelSerializer):
     isbn = serializers.CharField(max_length=13)
     title = serializers.CharField(max_length=50)
     author = serializers.CharField(max_length=50)
-    description = serializers.CharField(max_length=1000)
     stock = serializers.IntegerField()
     tags = TagSerializer(many=True)
 
     class Meta:
         model = Book
-        fields = ["isbn", "title", "author", "description", "stock", "tags"]
+        fields = ["isbn", "title", "author", "stock", "tags"]
 
     def validate_isbn(self, value):
         if value is None or value == "":
@@ -40,12 +40,6 @@ class BookCreateSerializer(serializers.ModelSerializer):
     def validate_author(self, value):
         if value is None or value == "":
             raise serializers.ValidationError("author cannot be empty")
-
-        return value
-
-    def validate_description(self, value):
-        if value is None or value == "":
-            raise serializers.ValidationError("description cannot be empty")
 
         return value
 
