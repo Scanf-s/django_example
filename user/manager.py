@@ -1,20 +1,20 @@
 from typing import TYPE_CHECKING, Dict
-
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
+from django.contrib.auth.models import BaseUserManager
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 
-from common.exceptions import custom_exception_handler
-from jwt_auth.manager import TokenManager
+from jwt_auth.models import Token
 
 if TYPE_CHECKING:
     from user.models import User
 
+import logging
 
-class UserManager(models.Manager):
+logger = logging.getLogger(__name__)
 
-    @custom_exception_handler
+
+class UserManager(BaseUserManager):
+
     def create_user(self, email, password, **extra_fields):
         if not email:
             raise ValueError("User must have an email address")
@@ -25,25 +25,23 @@ class UserManager(models.Manager):
         user.save()
         return user
 
-    @custom_exception_handler
     def login(self, email, password) -> Dict[str, str]:
         user: "User" = self.filter(email=email).first()
         if not user:
-            raise ObjectDoesNotExist("There is no user with this email")
+            raise NotFound("There is no user with this email")
 
-        if not user.check_password(password):
+        if not user.check_password(raw_password=password):
+            logger.debug("Wrong password")
             raise ValidationError("Wrong password")
 
         user.last_login = timezone.now()
         user.save()
 
         # access, refresh 토큰 생성
-        token_manager: TokenManager = TokenManager()
-        access_token: str = token_manager.create_token(
-            user=user, token_type=token_manager.TOKEN_TYPES[0]
+        access_token: str = Token.objects.create_token(
+            user=user, token_type=Token.objects.TOKEN_TYPES[0]
         )
-        refresh_token: str = token_manager.create_token(
-            user=user, token_type=token_manager.TOKEN_TYPES[1]
+        refresh_token: str = Token.objects.create_token(
+            user=user, token_type=Token.objects.TOKEN_TYPES[1]
         )
-
         return {"access_token": access_token, "refresh_token": refresh_token}

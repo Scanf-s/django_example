@@ -7,9 +7,11 @@ from rest_framework.views import APIView
 
 from common.exceptions import custom_exception_handler
 from jwt_auth.authentication import JWTAuthentication
-from jwt_auth.manager import TokenManager
-from user.manager import UserManager
+from jwt_auth.models import Token
+from user.models import User
+import logging
 
+logger = logging.getLogger(__name__)
 
 class LoginView(APIView):
     """
@@ -23,9 +25,8 @@ class LoginView(APIView):
     def post(self, request) -> Response:
         email: str = request.data.get("email")
         password: str = request.data.get("password")
-        data: Dict[str, str] = UserManager.login(email=email, password=password)
+        data: Dict[str, str] = User.objects.login(email=email, password=password)
         return Response(data=data, status=status.HTTP_200_OK)
-
 
 class LogoutView(APIView):
     """
@@ -38,5 +39,5 @@ class LogoutView(APIView):
     @custom_exception_handler
     def post(self, request) -> Response:
         refresh_token: str = request.data.get("refresh_token")
-        TokenManager().discard_refresh(user=request.user, token=refresh_token)
+        Token.objects.discard_refresh(user=request.user, token=refresh_token)
         return Response(status=status.HTTP_204_NO_CONTENT)

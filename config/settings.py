@@ -111,3 +111,18 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",  # 깔끔하게 JSON만 전달 (DRF 웹페이지 안씀)
     ),
 }
+
+# LOGGING
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
+}

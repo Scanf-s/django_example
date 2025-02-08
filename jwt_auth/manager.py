@@ -10,6 +10,9 @@ if TYPE_CHECKING:
     from user.models import User
     from jwt_auth.models import Token
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TokenManager(models.Manager):
 
@@ -85,9 +88,9 @@ class TokenManager(models.Manager):
             payload = jwt.decode(
                 refresh_token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
             )
-            user_id = payload.get("user_id")
+            user_id: int = payload.get("user_id")
 
-            user: User = User.objects.filter(id=user_id).first()
+            user: "User" = self.filter(user__id=user_id).first().user
             if not user:
                 raise jwt.exceptions.InvalidTokenError(
                     "Cannot find user when renewing token"
