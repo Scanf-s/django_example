@@ -1,6 +1,6 @@
-from common.models import TimeStampModel
-
 from django.db import models
+
+from common.models import TimeStampModel
 
 
 class Tag(TimeStampModel):

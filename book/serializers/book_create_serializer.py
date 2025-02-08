@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import List
 
@@ -6,6 +7,8 @@ from rest_framework import serializers
 from book.models import Book
 from tag.models import Tag
 from tag.serializers.tag_serializer import TagSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class BookCreateSerializer(serializers.ModelSerializer):
@@ -52,15 +55,13 @@ class BookCreateSerializer(serializers.ModelSerializer):
 
         return value
 
-    def validate_tags(self, value):
-        return value
-
     def create(self, validated_data):
-        tags: List = validated_data.pop("tags", [])
+        tag_data: List = validated_data.pop("tags", None)
         book: Book = Book.objects.create_book(request_body=validated_data)
 
-        for tag in tags:
-            data, _ = Tag.objects.get_or_create(name=tag)
-            book.tags.add(data)
+        for tag_dict in tag_data:
+            tag_id: int = tag_dict.get("tag_id")
+            tag, _ = Tag.objects.get_or_create(tag_id=tag_id)
+            book.tags.add(tag)
 
         return book

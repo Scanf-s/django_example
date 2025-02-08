@@ -1,3 +1,5 @@
+import logging
+
 from django.db.models.query import QuerySet
 from rest_framework import status
 from rest_framework.exceptions import NotFound
@@ -11,6 +13,8 @@ from book.serializers.book_response_serializer import BookResponseSerializer
 from book.serializers.book_update_serilaizer import BookUpdateSerializer
 from common.exceptions import custom_exception_handler
 from jwt_auth.authentication import JWTAuthentication
+
+logger = logging.getLogger(__name__)
 
 
 class BookView(APIView):
@@ -36,7 +40,7 @@ class BookView(APIView):
         serializer: BookCreateSerializer = BookCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class BookDetailView(APIView):

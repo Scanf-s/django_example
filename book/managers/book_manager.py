@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 class BookManager(Manager):
 
-    def get_all_books(self, request) -> QuerySet:
+    def get_all_books(self) -> QuerySet:
         return self.all()
 
     def create_book(self, request_body: Dict[str, str]) -> QuerySet:
