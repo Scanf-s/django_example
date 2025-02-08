@@ -34,6 +34,7 @@ DOMAINS = [
     "jwt.apps.JwtConfig",
     "common.apps.CommonConfig",
     "book.apps.BookConfig",
+    "loan.apps.LoanConfig",
 ]
 INSTALLED_APPS = ORIGIN_APPS + LIBRARIES + DOMAINS
 
