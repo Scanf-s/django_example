@@ -1,3 +1,4 @@
+import logging
 from typing import Dict
 
 from rest_framework import status
@@ -9,9 +10,9 @@ from common.exceptions import custom_exception_handler
 from jwt_auth.authentication import JWTAuthentication
 from jwt_auth.models import Token
 from user.models import User
-import logging
 
 logger = logging.getLogger(__name__)
+
 
 class LoginView(APIView):
     """
@@ -27,6 +28,7 @@ class LoginView(APIView):
         password: str = request.data.get("password")
         data: Dict[str, str] = User.objects.login(email=email, password=password)
         return Response(data=data, status=status.HTTP_200_OK)
+
 
 class LogoutView(APIView):
     """

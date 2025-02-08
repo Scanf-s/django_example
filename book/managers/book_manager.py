@@ -1,10 +1,11 @@
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 from django.db.models import Manager
 from django.db.models.query import QuerySet
 
 if TYPE_CHECKING:
     from book.models import Book
+
 
 class BookManager(Manager):
 
@@ -25,4 +26,3 @@ class BookManager(Manager):
         else:
             target.stock += quantity
         target.save()
-

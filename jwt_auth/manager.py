@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING, Optional
 
+import jwt
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
-
-import jwt
 
 if TYPE_CHECKING:
     from user.models import User
@@ -13,6 +12,7 @@ if TYPE_CHECKING:
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class TokenManager(models.Manager):
 

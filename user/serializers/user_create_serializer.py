@@ -21,7 +21,9 @@ class UserCreateSerializer(ModelSerializer):
         validate_password(password)  # exception 발생 안하면 통과
 
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("이미 존재하는 이메일입니다.")
+            raise serializers.ValidationError(
+                "이미 존재하는 이메일입니다."
+            )
 
         return attrs
 

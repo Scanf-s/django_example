@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from django.db import transaction
+from rest_framework import serializers
 
 from book.models import Book
 from loan.models import Loan
@@ -18,5 +18,7 @@ class LoanCreateSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
-        Book.objects.update_quantity(book_id=new_loan.book.book_id, quantity=new_loan.quantity, is_decrease=True)
+        Book.objects.update_quantity(
+            book_id=new_loan.book.book_id, quantity=new_loan.quantity, is_decrease=True
+        )
         return new_loan

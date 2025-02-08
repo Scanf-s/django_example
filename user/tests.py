@@ -1,8 +1,10 @@
-from rest_framework.test import APIClient, APITestCase, force_authenticate
 from django.urls import reverse
 from rest_framework import status
-from user.models import User
+from rest_framework.test import APIClient, APITestCase, force_authenticate
+
 from jwt_auth.models import Token
+from user.models import User
+
 
 class UserTestCase(APITestCase):
 
@@ -12,7 +14,11 @@ class UserTestCase(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username=self.USER_USERNAME, email=self.USER_EMAIL, password=self.USER_PASSWORD)
+        self.user = User.objects.create_user(
+            username=self.USER_USERNAME,
+            email=self.USER_EMAIL,
+            password=self.USER_PASSWORD,
+        )
         self.client.force_authenticate(user=self.user)
         return super().setUp()
 
@@ -23,8 +29,8 @@ class UserTestCase(APITestCase):
             data={
                 "email": _email,
                 "password": self.USER_PASSWORD,
-                "username": self.USER_USERNAME
-            }
+                "username": self.USER_USERNAME,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -38,8 +44,8 @@ class UserTestCase(APITestCase):
             data={
                 "email": self.USER_EMAIL,
                 "password": self.USER_PASSWORD,
-                "username": self.USER_USERNAME
-            }
+                "username": self.USER_USERNAME,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data.get("error"), "ValidationError")
@@ -50,8 +56,8 @@ class UserTestCase(APITestCase):
             data={
                 "email": "hahaha",
                 "password": self.USER_PASSWORD,
-                "username": self.USER_USERNAME
-            }
+                "username": self.USER_USERNAME,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data.get("error"), "ValidationError")
@@ -63,8 +69,8 @@ class UserTestCase(APITestCase):
             data={
                 "email": _email,
                 "password": "hahaha",
-                "username": self.USER_USERNAME
-            }
+                "username": self.USER_USERNAME,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data.get("error"), "ValidationError")
@@ -72,11 +78,8 @@ class UserTestCase(APITestCase):
     def test_login(self):
         response = self.client.post(
             path=reverse("login"),
-            data={
-                "email": str(self.USER_EMAIL),
-                "password": str(self.USER_PASSWORD)
-            },
-            format="json"
+            data={"email": str(self.USER_EMAIL), "password": str(self.USER_PASSWORD)},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn("access_token", response.data)
@@ -85,56 +88,42 @@ class UserTestCase(APITestCase):
     def test_invalid_login(self):
         response = self.client.post(
             path=reverse("login"),
-            data={
-                "email": str(self.USER_EMAIL),
-                "password": "hahaha"
-            },
-            format="json"
+            data={"email": str(self.USER_EMAIL), "password": "hahaha"},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data.get("error"), "ValidationError")
 
     def test_logout(self):
-        #Given
+        # Given
         response = self.client.post(
             path=reverse("login"),
-            data={
-                "email": self.USER_EMAIL,
-                "password": self.USER_PASSWORD
-            },
-            format="json"
+            data={"email": self.USER_EMAIL, "password": self.USER_PASSWORD},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         refresh_token: str = response.data.get("refresh_token")
 
-        #When
+        # When
         response = self.client.post(
-            path=reverse("logout"),
-            data={
-                "refresh_token": refresh_token
-            },
-            format="json"
+            path=reverse("logout"), data={"refresh_token": refresh_token}, format="json"
         )
 
-        #Then
+        # Then
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Token.objects.filter(token=refresh_token).exists(), False)
 
     def test_invalid_user_logout(self):
-        #Given
+        # Given
         invalid_client = APIClient()
 
-        #When
+        # When
         response = invalid_client.post(
-            path=reverse("logout"),
-            data={
-                "refresh_token": "hahaha"
-            }
+            path=reverse("logout"), data={"refresh_token": "hahaha"}
         )
 
-        #Then
+        # Then
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
 
     def tearDown(self):
         User.objects.all().delete()

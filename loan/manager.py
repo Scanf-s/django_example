@@ -1,10 +1,13 @@
-from django.db.models import Manager
 from typing import TYPE_CHECKING, Any
-from user.models import User
+
+from django.db.models import Manager
+
 from book.models import Book
+from user.models import User
 
 if TYPE_CHECKING:
     from loan.models import Loan
+
 
 class LoanManager(Manager):
 

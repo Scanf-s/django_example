@@ -1,11 +1,11 @@
 import functools
 
+import jwt
 from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.exceptions import ValidationError, NotFound
 from django.db.utils import IntegrityError
 from rest_framework import status
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
-import jwt
 
 
 def custom_exception_handler(func):

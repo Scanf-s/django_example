@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING, Dict
+
 from django.contrib.auth.models import BaseUserManager
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 
 from jwt_auth.models import Token
 
