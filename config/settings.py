@@ -31,7 +31,7 @@ LIBRARIES = [
 ]
 DOMAINS = [
     "user.apps.UserConfig",
-    "jwt.apps.JwtConfig",
+    "jwt_auth.apps.JWTAuthConfig",
     "common.apps.CommonConfig",
     "book.apps.BookConfig",
     "loan.apps.LoanConfig",
@@ -105,7 +105,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "jwt.authentication.JWTAuthentication",  # Custom JWT Authentication class 사용
+        "jwt_auth.authentication.JWTAuthentication",  # Custom JWT Authentication class 사용
     ],
     "DEFAULT_RENDERER_CLASSES": (
         "rest_framework.renderers.JSONRenderer",  # 깔끔하게 JSON만 전달 (DRF 웹페이지 안씀)

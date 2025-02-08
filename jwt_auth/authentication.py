@@ -4,7 +4,7 @@ from rest_framework import authentication
 from rest_framework.exceptions import AuthenticationFailed
 
 import jwt
-from jwt.models import Token
+from jwt_auth.models import Token
 
 User = get_user_model()
 

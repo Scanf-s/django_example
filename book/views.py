@@ -9,15 +9,15 @@ from book.models import Book
 from book.serializers.book_create_serializer import BookCreateSerializer
 from book.serializers.book_response_serializer import BookResponseSerializer
 from book.serializers.book_update_serilaizer import BookUpdateSerializer
-from common.exceptions import exception_handler
-from jwt.authentication import JWTAuthentication
+from common.exceptions import custom_exception_handler
+from jwt_auth.authentication import JWTAuthentication
 
 
-@exception_handler
 class BookView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @custom_exception_handler
     def get(self, request) -> Response:
         """
         도서관에 존재하는 모든 도서 리스트 조회
@@ -28,6 +28,7 @@ class BookView(APIView):
         )
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @custom_exception_handler
     def post(self, request) -> Response:
         """
         도서 등록 API
@@ -38,11 +39,11 @@ class BookView(APIView):
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
 
 
-@exception_handler
 class BookDetailView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @custom_exception_handler
     def get(self, request, **kwargs) -> Response:
         """
         book_id로 도서 정보 조회
@@ -54,6 +55,7 @@ class BookDetailView(APIView):
         serializer: BookResponseSerializer = BookResponseSerializer(instance=book)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @custom_exception_handler
     def put(self, request, **kwargs) -> Response:
         """
         book_id로 도서 정보 수정
@@ -69,6 +71,7 @@ class BookDetailView(APIView):
         serializer.save()
         return Response(status=status.HTTP_200_OK)
 
+    @custom_exception_handler
     def patch(self, request, **kwargs) -> Response:
         """
         book_id로 도서 정보 일부 수정
@@ -84,6 +87,7 @@ class BookDetailView(APIView):
         serializer.save()
         return Response(status=status.HTTP_200_OK)
 
+    @custom_exception_handler
     def delete(self, request, **kwargs) -> Response:
         """
         book_id로 도서 정보 삭제

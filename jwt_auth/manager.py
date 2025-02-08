@@ -5,17 +5,17 @@ from django.db import models
 from django.utils import timezone
 
 import jwt
-from user.models import User
 
 if TYPE_CHECKING:
-    from jwt.models import Token
+    from user.models import User
+    from jwt_auth.models import Token
 
 
 class TokenManager(models.Manager):
 
     TOKEN_TYPES = ["ACCESS", "REFRESH"]
 
-    def create_token(self, user: User, token_type: str) -> str:
+    def create_token(self, user: "User", token_type: str) -> str:
         """
         토큰 생성 함수
         """
@@ -57,7 +57,7 @@ class TokenManager(models.Manager):
         except jwt.exceptions.InvalidTokenError:
             return False
 
-    def discard_refresh(self, user: User, token: str) -> None:
+    def discard_refresh(self, user: "User", token: str) -> None:
         """
         Refresh 토큰 폐기하는 함수
         """

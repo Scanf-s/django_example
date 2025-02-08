@@ -5,7 +5,8 @@ from django.db import models
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from jwt.manager import TokenManager
+from common.exceptions import custom_exception_handler
+from jwt_auth.manager import TokenManager
 
 if TYPE_CHECKING:
     from user.models import User
@@ -13,8 +14,20 @@ if TYPE_CHECKING:
 
 class UserManager(models.Manager):
 
+    @custom_exception_handler
+    def create_user(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError("User must have an email address")
+        email = self.normalize_email(email)
+
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
+
+    @custom_exception_handler
     def login(self, email, password) -> Dict[str, str]:
-        user: User = self.filter(email=email).first()
+        user: "User" = self.filter(email=email).first()
         if not user:
             raise ObjectDoesNotExist("There is no user with this email")
 

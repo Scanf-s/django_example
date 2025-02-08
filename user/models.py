@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 
+from user.manager import UserManager
+
 
 class UserRole(models.TextChoices):
     ADMIN = "admin"
@@ -15,6 +17,8 @@ class User(AbstractBaseUser):
     )
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    objects = UserManager()
 
     class Meta:
         db_table = "user"

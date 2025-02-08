@@ -10,7 +10,7 @@ from loan.serializers.loan_create_serlializer import LoanCreateSerializer
 from loan.serializers.loan_response_serializer import LoanResponseSerializer
 from loan.serializers.loan_update_serializer import LoanUpdateSerializer
 from user.models import User, UserRole
-from jwt.authentication import JWTAuthentication
+from jwt_auth.authentication import JWTAuthentication
 from rest_framework.exceptions import NotFound
 
 class LoanView(APIView):

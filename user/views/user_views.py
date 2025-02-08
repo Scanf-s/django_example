@@ -7,15 +7,14 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from common.exceptions import exception_handler
-from jwt.authentication import JWTAuthentication
+from common.exceptions import custom_exception_handler
+from jwt_auth.authentication import JWTAuthentication
 from user.models import User, UserRole
 from user.permissions import IsAdminUser
 from user.serializers.user_create_serializer import UserCreateSerializer
 from user.serializers.user_response_serializer import UserResponseSerializer
 
 
-@exception_handler
 class UserView(APIView):
 
     def get_permissions(self):
@@ -30,6 +29,7 @@ class UserView(APIView):
         else:
             return []
 
+    @custom_exception_handler
     def get(self, request):  # 사용자 리스트
         user_queryset: QuerySet = User.objects.all()
         serializer: UserResponseSerializer = UserResponseSerializer(
@@ -37,16 +37,19 @@ class UserView(APIView):
         )
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+    @custom_exception_handler
     def post(self, request):  # 사용자 생성 (Register)
         # Admin 계정은 데이터베이스에 직접 생성해주세요
         user_data: Dict[str, str] = request.data
+        if User.objects.filter(email=request.data.get("email")).exists():
+            raise ValidationError("Email already exists")
+
         serializer: UserCreateSerializer = UserCreateSerializer(data=user_data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_201_CREATED)
 
 
-@exception_handler
 class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -59,6 +62,7 @@ class UserDetailView(APIView):
         serializer: UserResponseSerializer = UserResponseSerializer(instance=user)
         return serializer.data
 
+    @custom_exception_handler
     def get(self, request, **kwargs) -> Response:
         user_id: str = kwargs.get("user_id")
         if not user_id:

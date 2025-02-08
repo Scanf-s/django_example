@@ -1,7 +1,7 @@
 from django.db import models
 
 from common.models import TimeStampModel
-from jwt.manager import TokenManager
+from jwt_auth.manager import TokenManager
 
 
 class Token(TimeStampModel):
