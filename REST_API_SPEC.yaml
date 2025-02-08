@@ -96,6 +96,12 @@ paths:
       tags: [users]
       security:
         - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: 성공적으로 도서관 사용자 정보를 조회한 경우
@@ -216,6 +222,12 @@ paths:
       tags: [ books ]
       security:
         - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: 성공적으로 도서 정보를 조회한 경우
@@ -259,6 +271,12 @@ paths:
       tags: [ books ]
       security:
         - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: string
       requestBody:
         description: 도서 정보 수정 시 필요한 정보
         content:
@@ -305,6 +323,12 @@ paths:
       tags: [ books ]
       security:
         - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: string
       requestBody:
         description: 도서 정보 수정 시 필요한 정보
         content:
@@ -351,6 +375,12 @@ paths:
       tags: [ books ]
       security:
         - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '204':
           description: 성공적으로 도서 정보를 삭제한 경우
@@ -425,6 +455,12 @@ paths:
       tags: [loans]
       security:
         - bearerAuth: []
+      parameters:
+        - name: loan_id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: 성공적으로 대출 정보를 조회한 경우
@@ -468,6 +504,12 @@ paths:
       tags: [ loans ]
       security:
         - bearerAuth: []
+      parameters:
+        - name: loan_id
+          in: path
+          required: true
+          schema:
+            type: string
       requestBody:
         required: true
         content:
@@ -551,6 +593,12 @@ paths:
       tags: [loans]
       security:
         - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: 성공적으로 특정 도서의 대출 정보를 조회한 경우
@@ -732,8 +780,9 @@ components:
         publisher:
           type: string
           description: 도서 출판사
-        stocks:
-          type: int64
+        stock:
+          type: integer
+          format: int64
           description: 재고 수
     BookResponse:
       type: object
@@ -755,8 +804,9 @@ components:
         publisher:
           type: string
           description: 도서 출판사
-        stocks:
-          type: int64
+        stock:
+          type: integer
+          format: int64
           description: 재고 수
     BookUpdate:
       type: object
@@ -773,8 +823,9 @@ components:
         publisher:
           type: string
           description: 도서 출판사
-        stocks:
-          type: int64
+        stock:
+          type: integer
+          format: int64
           description: 재고 수
     LoanCreate:
       type: object
@@ -794,16 +845,20 @@ components:
       type: object
       properties:
         loan_id:
-          type: int64
+          type: integer
+          format: int64
           description: 대출 ID
         user_id:
-          type: int64
+          type: integer
+          format: int64
           description: 사용자 ID
         book_id:
-          type: int64
+          type: integer
+          format: int64
           description: 도서 ID
         quantity:
           type: integer
+          format: int64
           description: 대출 수
     LoanUpdate:
       type: object
