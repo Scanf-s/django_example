@@ -1,9 +1,9 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase, force_authenticate
+from rest_framework.test import APIClient, APITestCase
 
 from jwt_auth.models import Token
-from user.models import User
+from user.models import User, UserRole
 
 
 class UserTestCase(APITestCase):
@@ -11,6 +11,8 @@ class UserTestCase(APITestCase):
     USER_EMAIL = "test@test.com"
     USER_PASSWORD = "123@1231@23@1231@23"
     USER_USERNAME = "test"
+
+    ADMIN_EMAIL = "admin@test.com"
 
     def setUp(self):
         self.client = APIClient()
@@ -20,6 +22,16 @@ class UserTestCase(APITestCase):
             password=self.USER_PASSWORD,
         )
         self.client.force_authenticate(user=self.user)
+
+        self.admin_client = APIClient()
+        self.admin = User.objects.create_user(
+            username=self.USER_USERNAME,
+            email=self.ADMIN_EMAIL,
+            password=self.USER_PASSWORD,
+            role=UserRole.ADMIN,
+        )
+        self.admin_client.force_authenticate(user=self.admin)
+
         return super().setUp()
 
     def test_user_create(self):
@@ -124,6 +136,32 @@ class UserTestCase(APITestCase):
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_get_users_with_admin_client(self):
+        # When
+        response = self.admin_client.get(path=reverse("user"))
+
+        # Then
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_users_with_user_client(self):
+        # When
+        response = self.client.get(path=reverse("user"))
+
+        # Then
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_get_my_info(self):
+        # When
+        response = self.client.get(
+            path=reverse("user_detail", kwargs={"user_id": self.user.id})
+        )
+
+        # Then
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("email", response.data)
+        self.assertIn("username", response.data)
+        self.assertIn("id", response.data)
 
     def tearDown(self):
         User.objects.all().delete()
