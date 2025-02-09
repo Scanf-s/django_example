@@ -5,9 +5,11 @@ from rest_framework import serializers
 
 from book.models import Book
 from tag.models import Tag
+from tag.serializers.tag_serializer import TagSerializer
 
 
 class BookUpdateSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True)
 
     class Meta:
         model = Book
@@ -55,6 +57,7 @@ class BookUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         tags: List = validated_data.pop("tags", None)
+
         for key, value in validated_data.items():
             setattr(instance, key, value)
         instance.save()

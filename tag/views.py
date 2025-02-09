@@ -6,7 +6,9 @@ from rest_framework.views import APIView
 
 from jwt_auth.authentication import JWTAuthentication
 from tag.models import Tag
+from tag.serializers.tag_create_serializer import TagCreateSerializer
 from tag.serializers.tag_serializer import TagSerializer
+from tag.serializers.tag_update_serializer import TagUpdateSerializer
 from user.permissions import IsAdminUser
 
 
@@ -24,7 +26,7 @@ class TagView(APIView):
 
     def post(self, request) -> Response:
         # 태그 생성
-        serializer: TagSerializer = TagSerializer(data=request.data)
+        serializer: TagCreateSerializer = TagCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data=serializer.data, status=status.HTTP_201_CREATED)
@@ -54,7 +56,7 @@ class TagDetailView(APIView):
         if not tag:
             raise NotFound("Tag not found")
 
-        serializer: TagSerializer = TagSerializer(instance=tag, data=request.data)
+        serializer: TagUpdateSerializer = TagUpdateSerializer(instance=tag, data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK)
