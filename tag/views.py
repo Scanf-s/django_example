@@ -56,7 +56,9 @@ class TagDetailView(APIView):
         if not tag:
             raise NotFound("Tag not found")
 
-        serializer: TagUpdateSerializer = TagUpdateSerializer(instance=tag, data=request.data)
+        serializer: TagUpdateSerializer = TagUpdateSerializer(
+            instance=tag, data=request.data
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(status=status.HTTP_200_OK)

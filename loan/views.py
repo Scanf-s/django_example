@@ -30,18 +30,12 @@ class LoanView(APIView):
 
     def post(self, request) -> Response:
         user: User = request.user
-        book: Book = Book.objects.filter(
-            book_id=request.data.pop("book_id", None)
-        ).first()
-        if not book:
-            raise NotFound("Invalid book id")
-
         serializer: LoanCreateSerializer = LoanCreateSerializer(
-            data=request.data, context={"user": user, "book": book}
+            data=request.data, context={"user": user}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
 
 
 class LoanDetailView(APIView):

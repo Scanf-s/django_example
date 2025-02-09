@@ -21,11 +21,6 @@ def custom_exception_handler(func):
                 data={"error": "InvalidTokenError", "error_message": str(e)},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        except ValueError as e:
-            return Response(
-                data={"error": "ValueError", "error_message": str(e)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         except NotFound as e:
             return Response(
                 data={"error": "NotFound", "error_message": str(e)},

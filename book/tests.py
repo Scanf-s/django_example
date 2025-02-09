@@ -132,7 +132,9 @@ class BookTestCase(APITestCase):
         Book.objects.bulk_create(bulk_books)
 
         # When
-        response = self.client.delete(path=reverse("book_detail", kwargs={"book_id": 1}))
+        response = self.client.delete(
+            path=reverse("book_detail", kwargs={"book_id": 1})
+        )
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
