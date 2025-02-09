@@ -45,17 +45,18 @@ RUN useradd --no-create-home --uid 1000 django-user
 WORKDIR /app
 
 # 빌드 스테이지에서 필요한 파일 복사
-COPY --from=builder /opt/poetry /opt/poetry
-COPY --from=builder /app /app
-COPY --from=builder /usr/local/lib /usr/local/lib
-COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder --chown=django-user:django-user /opt/poetry /opt/poetry
+COPY --from=builder --chown=django-user:django-user /app /app
+COPY --from=builder --chown=django-user:django-user /usr/local/lib /usr/local/lib
+COPY --from=builder --chown=django-user:django-user /usr/local/bin /usr/local/bin
+RUN chown django-user:django-user /app
 
 # 프로젝트 파일 복사
 COPY --chown=django-user:django-user . .
 
 # 로그 디렉토리 설정
-#RUN mkdir -p /app/logs && \
-#    chown -R django-user:django-user /app/logs
+RUN mkdir -p /app/logs && \
+    chown -R django-user:django-user /app/logs
 
 # 포트 노출
 EXPOSE 8000
