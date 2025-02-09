@@ -2,6 +2,7 @@ from typing import List
 
 from django.db.models.query import QuerySet
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
@@ -41,6 +42,7 @@ class BookTestCase(APITestCase):
                 "author": "test",
                 "isbn": "9788966260959",
                 "stock": 1,
+                "published_at": timezone.now().date(),
                 "tags": [{"tag_id": 1}, {"tag_id": 2}],
             },
             format="json",
@@ -54,7 +56,13 @@ class BookTestCase(APITestCase):
         bulk_books = []
         for i in range(10):
             bulk_books.append(
-                Book(title=f"book-{i}", author="test", isbn="9788966260959", stock=1)
+                Book(
+                    title=f"book-{i}",
+                    author="test",
+                    isbn="9788966260959",
+                    stock=1,
+                    published_at=timezone.now().date() + timezone.timedelta(days=i),
+                )
             )
         Book.objects.bulk_create(bulk_books)
 
@@ -69,7 +77,7 @@ class BookTestCase(APITestCase):
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 10)
+        self.assertEqual(len(response.data.get("results")), 10)
 
     def test_get_book_by_id(self):
         # Given
@@ -77,7 +85,13 @@ class BookTestCase(APITestCase):
         book_cnt: int = 3
         for i in range(book_cnt):
             bulk_books.append(
-                Book(title=f"book-{i}", author="test", isbn="9788966260959", stock=1)
+                Book(
+                    title=f"book-{i}",
+                    author="test",
+                    isbn="9788966260959",
+                    stock=1,
+                    published_at=timezone.now().date() + timezone.timedelta(days=i),
+                )
             )
         Book.objects.bulk_create(bulk_books)
 
@@ -94,7 +108,13 @@ class BookTestCase(APITestCase):
         book_cnt: int = 3
         for i in range(book_cnt):
             bulk_books.append(
-                Book(title=f"book-{i}", author="test", isbn="9788966260959", stock=1)
+                Book(
+                    title=f"book-{i}",
+                    author="test",
+                    isbn="9788966260959",
+                    stock=1,
+                    published_at=timezone.now().date() + timezone.timedelta(days=i),
+                )
             )
         Book.objects.bulk_create(bulk_books)
 
@@ -126,7 +146,13 @@ class BookTestCase(APITestCase):
         book_cnt: int = 3
         for i in range(book_cnt):
             bulk_books.append(
-                Book(title=f"book-{i}", author="test", isbn="9788966260959", stock=1)
+                Book(
+                    title=f"book-{i}",
+                    author="test",
+                    isbn="9788966260959",
+                    stock=1,
+                    published_at=timezone.now().date() + timezone.timedelta(days=i),
+                )
             )
         Book.objects.bulk_create(bulk_books)
 
@@ -144,7 +170,13 @@ class BookTestCase(APITestCase):
         bulk_books = []
         for i in range(10):
             bulk_books.append(
-                Book(title=f"book-{i}", author="test", isbn="9788966260959", stock=1)
+                Book(
+                    title=f"book-{i}",
+                    author="test",
+                    isbn="9788966260959",
+                    stock=1,
+                    published_at=timezone.now().date() + timezone.timedelta(days=i),
+                )
             )
         Book.objects.bulk_create(bulk_books)
 
@@ -161,9 +193,15 @@ class BookTestCase(APITestCase):
 
     def test_get_books_by_title(self):
         # Given
-        Book.objects.create(title="book-0", author="test", isbn="9788966260959", stock=1)
-        Book.objects.create(title="123123book-0123123123", author="test", isbn="9788966260960", stock=1)
-        Book.objects.create(title="asdf-1", author="test", isbn="9788964460959", stock=1)
+        Book.objects.create(
+            title="book-0", author="test", isbn="9788966260959", stock=1
+        )
+        Book.objects.create(
+            title="123123book-0123123123", author="test", isbn="9788966260960", stock=1
+        )
+        Book.objects.create(
+            title="asdf-1", author="test", isbn="9788964460959", stock=1
+        )
 
         # When
         response = self.client.get(
@@ -172,13 +210,19 @@ class BookTestCase(APITestCase):
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data.get("results")), 2)
 
     def test_get_books_by_author(self):
         # Given
-        Book.objects.create(title="book-0", author="test", isbn="9788966260959", stock=1)
-        Book.objects.create(title="123123book-0123123123", author="asdf", isbn="9788966260960", stock=1)
-        Book.objects.create(title="asdf-1", author="test", isbn="9788964460959", stock=1)
+        Book.objects.create(
+            title="book-0", author="test", isbn="9788966260959", stock=1
+        )
+        Book.objects.create(
+            title="123123book-0123123123", author="asdf", isbn="9788966260960", stock=1
+        )
+        Book.objects.create(
+            title="asdf-1", author="test", isbn="9788964460959", stock=1
+        )
 
         # When
         response = self.client.get(
@@ -187,18 +231,30 @@ class BookTestCase(APITestCase):
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data.get("results")), 2)
 
     def test_get_books_by_tags(self):
         # Given
         book1 = Book.objects.create(
-            title="Book One", author="Author A", isbn="9788966260959", stock=5
+            title="Book One",
+            author="Author A",
+            isbn="9788966260959",
+            stock=5,
+            published_at=timezone.now().date(),
         )
         book2 = Book.objects.create(
-            title="Book Two", author="Author B", isbn="9788966260960", stock=5
+            title="Book Two",
+            author="Author B",
+            isbn="9788966260960",
+            stock=5,
+            published_at=timezone.now().date() + timezone.timedelta(days=1),
         )
         book3 = Book.objects.create(
-            title="Book Three", author="Author C", isbn="9788966260961", stock=5
+            title="Book Three",
+            author="Author C",
+            isbn="9788966260961",
+            stock=5,
+            published_at=timezone.now().date() + timezone.timedelta(days=2),
         )
 
         tag1 = Tag.objects.get(tag_id=1)
@@ -215,27 +271,27 @@ class BookTestCase(APITestCase):
         response = self.client.get(
             path=reverse("books"),
             data={"tag": ["1", "2"], "tag_option": "and"},
-            format="json"
+            format="json",
         )
 
         # Then
         # tag1, tag2를 모두 가진 Book1만 반환되어야 함
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]["title"], "Book One")
+        self.assertEqual(len(response.data.get("results")), 1)
+        self.assertEqual(response.data.get("results")[0]["title"], "Book One")
 
         # When
         # tag-1 또는 tag-2를 OR 조건으로 필터링
         response = self.client.get(
             path=reverse("books"),
             data={"tag": ["1", "2"], "tag_option": "or"},
-            format="json"
+            format="json",
         )
 
         # Then
         # tag1 또는 tag2를 가지고 있는 책 3개가 모두 반환되어야함
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3)
+        self.assertEqual(len(response.data.get("results")), 3)
 
         # When
         # tag-1만 지정한 경우, tag-1을 가지고 있는 Book One, Book Two만 반환되어야 함
@@ -245,7 +301,78 @@ class BookTestCase(APITestCase):
 
         # Then
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data.get("results")), 2)
+
+    def test_get_books_order_by_field(self):
+        # Given
+        bulk_books = []
+        for i in range(10):
+            bulk_books.append(
+                Book(
+                    title=f"book-{i}",
+                    author="test",
+                    isbn="9788966260959",
+                    stock=1,
+                    published_at=timezone.now().date() + timezone.timedelta(days=i),
+                )
+            )
+        Book.objects.bulk_create(bulk_books)
+
+        # When
+        # title 오름차순
+        response = self.client.get(
+            path=reverse("books"), query_params={"order_by": "title"}, format="json"
+        )
+
+        # Then
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            response.data.get("results")[0]["title"]
+            < response.data.get("results")[1]["title"]
+        )
+
+        # When
+        # title 내림차순
+        response = self.client.get(
+            path=reverse("books"), query_params={"order_by": "-title"}, format="json"
+        )
+
+        # Then
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            response.data.get("results")[0]["title"]
+            > response.data.get("results")[1]["title"]
+        )
+
+        # When
+        # published_at 오름차순
+        response = self.client.get(
+            path=reverse("books"),
+            query_params={"order_by": "published_at"},
+            format="json",
+        )
+
+        # Then
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            response.data.get("results")[0]["published_at"]
+            < response.data.get("results")[1]["published_at"]
+        )
+
+        # When
+        # published_at 내림차순
+        response = self.client.get(
+            path=reverse("books"),
+            query_params={"order_by": "-published_at"},
+            format="json",
+        )
+
+        # Then
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            response.data.get("results")[0]["published_at"]
+            > response.data.get("results")[1]["published_at"]
+        )
 
     def tearDown(self):
         Book.objects.all().delete()

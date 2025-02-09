@@ -9,4 +9,4 @@ class BookResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ["book_id", "isbn", "title", "author", "stock", "tags"]
+        fields = ["book_id", "isbn", "title", "author", "stock", "published_at", "tags"]

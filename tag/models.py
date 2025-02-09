@@ -2,9 +2,11 @@ from django.db import models
 
 from common.models import TimeStampModel
 
+
 class TagFilterOption(models.TextChoices):
     AND = "and"
     OR = "or"
+
 
 class Tag(TimeStampModel):
     tag_id = models.BigAutoField(primary_key=True)

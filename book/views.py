@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List
+from typing import List, Optional
 
 from django.db.models.query import QuerySet
 from rest_framework import status
@@ -8,7 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from book.models import Book
+from book.models import Book, BookOrderFilterOption
+from book.paginator import BookPagination
 from book.serializers.book_create_serializer import BookCreateSerializer
 from book.serializers.book_response_serializer import BookResponseSerializer
 from book.serializers.book_update_serilaizer import BookUpdateSerializer
@@ -31,26 +32,37 @@ class BookView(APIView):
         title: Optional[str] = request.query_params.get("title", None)
         author: Optional[str] = request.query_params.get("author", None)
         tag_ids: Optional[List[int]] = request.query_params.getlist("tag", None)
-        tag_option: str = request.query_params.get("tag_option", None)
+        tag_option: Optional[str] = request.query_params.get("tag_option", None)
+        order_field: Optional[str] = request.query_params.get("order_by", None)
+
+        if order_field and order_field not in BookOrderFilterOption.values:
+            raise ValidationError("order_by value is invalid. please check API Docs")
 
         if len(tag_ids) >= 2 and tag_option is None:
-            raise ValidationError("tag_option is required when you filter books by tags")
+            raise ValidationError(
+                "tag_option is required when you filter books by tags"
+            )
 
         if len(tag_ids) >= 2 and tag_option not in TagFilterOption.values:
             raise ValidationError("tag_option is invalid. please check API Docs")
 
         if title or author or tag_ids:
-            queryset: QuerySet = Book.objects.get_books(title=title, author=author, tag_ids=tag_ids, tag_option=tag_option)
-            serializer: BookResponseSerializer = BookResponseSerializer(
-                instance=queryset, many=True
+            queryset: QuerySet = Book.objects.get_books(
+                title=title,
+                author=author,
+                tag_ids=tag_ids,
+                tag_option=tag_option,
+                order_field=order_field,
             )
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
         else:
-            queryset: QuerySet = Book.objects.get_all_books()
-            serializer: BookResponseSerializer = BookResponseSerializer(
-                instance=queryset, many=True
-            )
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            queryset: QuerySet = Book.objects.get_all_books(order_field=order_field)
+
+        paginator: BookPagination = BookPagination()
+        paginated_queryset: QuerySet = paginator.paginate_queryset(queryset, request)
+        serializer: BookResponseSerializer = BookResponseSerializer(
+            instance=paginated_queryset, many=True
+        )
+        return paginator.get_paginated_response(data=serializer.data)
 
     @custom_exception_handler
     def post(self, request) -> Response:
@@ -122,4 +134,3 @@ class BookDetailView(APIView):
 
         book.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-

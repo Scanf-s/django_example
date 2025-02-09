@@ -16,11 +16,12 @@ class BookCreateSerializer(serializers.ModelSerializer):
     title = serializers.CharField(max_length=50)
     author = serializers.CharField(max_length=50)
     stock = serializers.IntegerField()
+    published_at = serializers.DateField()
     tags = TagSerializer(many=True)
 
     class Meta:
         model = Book
-        fields = ["isbn", "title", "author", "stock", "tags"]
+        fields = ["isbn", "title", "author", "stock", "published_at", "tags"]
 
     def validate_isbn(self, value):
         if value is None or value == "":
@@ -52,6 +53,12 @@ class BookCreateSerializer(serializers.ModelSerializer):
 
         if value < 0:
             raise serializers.ValidationError("stock cannot be negative")
+
+        return value
+
+    def valudate_published_at(self, value):
+        if value is None or value == "":
+            raise serializers.ValidationError("published_at cannot be empty")
 
         return value
 

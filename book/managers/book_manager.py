@@ -1,9 +1,10 @@
-from typing import TYPE_CHECKING, Dict, Optional, List
+from typing import TYPE_CHECKING, Dict, List, Optional
 
-from django.db.models import Manager, Count, Q
+from django.db.models import Count, Manager, Q
 from django.db.models.query import QuerySet
-from tag.models import TagFilterOption
 from rest_framework.exceptions import ValidationError
+
+from tag.models import TagFilterOption
 
 if TYPE_CHECKING:
     from book.models import Book
@@ -11,7 +12,14 @@ if TYPE_CHECKING:
 
 class BookManager(Manager):
 
-    def get_books(self, title: Optional[str], author: Optional[str], tag_ids: Optional[List[int]], tag_option: Optional[str]) -> QuerySet:
+    def get_books(
+        self,
+        title: Optional[str],
+        author: Optional[str],
+        tag_ids: Optional[List[int]],
+        tag_option: Optional[str],
+        order_field: Optional[str],
+    ) -> QuerySet:
         queryset: QuerySet = self.all()
         if tag_ids:
             if len(tag_ids) == 1:
@@ -20,7 +28,11 @@ class BookManager(Manager):
                 if tag_option == TagFilterOption.AND:
                     queryset = (
                         queryset.filter(tags__tag_id__in=tag_ids)
-                        .annotate(match_count=Count("tags", filter=Q(tags__tag_id__in=tag_ids)))
+                        .annotate(
+                            match_count=Count(
+                                "tags", filter=Q(tags__tag_id__in=tag_ids)
+                            )
+                        )
                         .filter(match_count=len(tag_ids))
                     )
                 elif tag_option == TagFilterOption.OR:
@@ -31,10 +43,19 @@ class BookManager(Manager):
             queryset = queryset.filter(title__icontains=title)
         if author:
             queryset = queryset.filter(author__icontains=author)
-        return queryset
+        if order_field:
+            if order_field.startswith("-"):
+                queryset = queryset.order_by(order_field)
+            else:
+                queryset = queryset.order_by(order_field)
+        return queryset.order_by("-created_at")  # 기본 정렬 옵션
 
-    def get_all_books(self) -> QuerySet:
-        return self.all()
+    def get_all_books(self, order_field: Optional[str]) -> QuerySet:
+        return (
+            self.all().order_by(order_field)
+            if order_field
+            else self.all().order_by("-created_at")
+        )
 
     def create_book(self, request_body: Dict[str, str]) -> QuerySet:
         return self.create(**request_body)

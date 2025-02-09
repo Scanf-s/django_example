@@ -69,8 +69,4 @@ class Migration(migrations.Migration):
                 related_name="books", through="book.BookTag", to="tag.tag"
             ),
         ),
-        migrations.AddIndex(
-            model_name="book",
-            index=models.Index(fields=["isbn"], name="book_isbn_e93b35_idx"),
-        ),
     ]
