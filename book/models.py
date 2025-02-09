@@ -3,7 +3,6 @@ from django.db import models
 from book.managers.book_manager import BookManager
 from common.models import TimeStampModel
 
-
 class Book(TimeStampModel):
     book_id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=255)
@@ -20,7 +19,8 @@ class Book(TimeStampModel):
     class Meta:
         db_table = "book"
         indexes = [
-            models.Index(fields=["isbn"]),
+            models.Index(fields=["title"]),
+            models.Index(fields=["author"]),
         ]
 
 
