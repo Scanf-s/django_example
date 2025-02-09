@@ -126,6 +126,7 @@ class BookTestCase(APITestCase):
                 "title": "update",
                 "author": "test",
                 "stock": 123,
+                "published_at": timezone.now().date(),
                 "tags": [{"tag_id": 3}, {"tag_id": 4}],
             },
             format="json",

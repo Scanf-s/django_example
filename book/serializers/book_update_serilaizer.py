@@ -13,7 +13,7 @@ class BookUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Book
-        fields = ["isbn", "title", "author", "stock", "tags"]
+        fields = ["isbn", "title", "author", "stock", "published_at", "tags"]
 
     def validate_isbn(self, value):
         if value is None or value == "":
