@@ -43,3 +43,10 @@ docker container rm [컨테이너이름]
 - Base URL
   1) http://localhost:8000/api/v1
   2) http://127.0.0.1:8000/api/v1
+
+## 토큰 발급 받는 방법
+### 회원가입
+![image](https://github.com/user-attachments/assets/48599f7c-0bec-49fc-a406-01767b391de5)
+
+### 로그인 (토큰 발급)
+![image](https://github.com/user-attachments/assets/237d44e6-ae2c-4ae1-b036-bf3115a0e5be)
