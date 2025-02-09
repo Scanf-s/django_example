@@ -26,6 +26,11 @@ docker run -d -p 8000:8000 --name [원하는컨테이너이름] [빌드한이미
 docker exec -it [컨테이너이름] /bin/bash
 ```
 
+## 로그 보고 싶다면
+```text
+docker logs -f [컨테이너이름]
+```
+
 ## 컨테이너 중지, 삭제 방법
 ```shell
 docker container stop [컨테이너이름]

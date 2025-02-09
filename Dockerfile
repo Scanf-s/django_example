@@ -64,4 +64,4 @@ EXPOSE 8000
 USER django-user
 
 # 테스트 전용 Django 프로젝트 실행
-CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python manage.py runserver"]
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
