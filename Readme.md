@@ -1,6 +1,7 @@
 # 목차
 1. 프로젝트 실행 방법
 2. 캐시 전략 및 API 성능 테스트
+3. CI/CD 설계 및 구현
 
 # 실행 방법
 
@@ -127,4 +128,48 @@ docker compose down
 - GET을 구현할때에 비해 POST, PUT, PATCH, DELETE의 경우에는 단순히 현재 캐시에 대해서만 모두 무효화 해버리면 된다고 생각하였습니다.
 - 하지만 실무에서는 이런 방식을 사용하지 않을 수도 있을 것 같은데, 어떻게 캐시 무효화를 구현하는지 궁금하네요!
 
+---
 
+# CI/CD 설계 및 구현
+
+## Architecture preview
+
+(아키텍쳐 사진)
+
+## CI 설계
+
+### 가정
+- 현재 구현한 백엔드 어플리케이션은 테스트코드가 40개정도입니다. 만약 어떤 개발자가 테스트코드로 코드를 검증하지 않고 오류가 남아있는 채로 그냥 바로 Github에 PR을 올렸다면, 이를 PR 단계에서 Merge할 수 없도록 막아주어야 합니다.
+- 이 백엔드 어플리케이션을 개발하는 모든 구성원은 코드 스타일 획일화를 위해 black 및 isort 라이브러리를 사용하여 코드 린팅을 수행해야 합니다.
+
+### 구현
+- Github Actions를 사용하여 CI 스크립트를 작성하고, 위 가정을 만족하도록 구성해야 합니다.
+- .github/workflows/integration.yml에 작성하였습니다.
+
+## CD 설계
+
+### 가정
+- 현재 프로젝트는 docker와 docker compose를 사용합니다.
+- 주로 AWS를 많이 사용해봐서, 익숙한 AWS에 배포하려고 합니다.
+- AWS의 ECR에 백엔드 어플리케이션을 빌드한 도커 이미지를 PUSH해야하고, EC2인스턴스에는 docker-compose.yml만 있으면 됩니다.
+- 또한, docker-compose.yml을 그대로 사용하기보다, docker-compose-prod.yml을 따로 서버측에 구성해두어서 서버전용 환경 변수를 편집하는것이 바람직하지만, 생략하도록 하겠습니다.
+- EC2에는 ECR에 올라간 도커 이미지를 받을 수 있는 IAM ROLE이 적용되어 있어야 하고, aws api를 사용할 수 있는 IAM ROLE이 적용되었으며, token이 발급된 IAM USER가 필요합니다.
+- 또한 aws credential 설정 및 ecr로부터 이미지 다운로드, docker-compose.yml을 실행하는 스크립트를 작성해야 합니다.
+- IAM USER 및 토큰 발급의 경우를 제외한 AWS 리소스 생성 및 권한 설정은 Terraform을 학습하기 위해 Terraform으로 생성하였습니다.
+- 또한, 기존 프로젝트 유지 비용이 있어 프리티어 범위를 초과한 이유로, 도메인 연결, HTTPS 적용은 하지 않았으며, 단순히 EC2만 사용했음을 알려드립니다.
+
+### 구현
+- Github Actions를 사용하여 CD 스크립트를 작성하고, 위 가정을 만족하도록 구성해야 합니다.
+- .github/workflows/deployment.yml에 작성하였습니다.
+
+### AWS 관련
+- EC2는 Private subnet에 위치시키는 것이 맞으나, NAT 게이트웨이를 따로 구성해야하고 추가적으로 설정을 해주어야 하기 때문에 Public subnet에 위치시켰습니다.
+- 단순히 Elastic IP를 하나 할당하였으며, SSH, Django application port 연결을 위해 Security group을 구성하였습니다.
+- 본래 Elastic IP는 잘 사용하지 않으나, 고정된 IP가 필요하므로 사용하였습니다.
+- 현재 데이터베이스를 Docker 내부에 존재하는 sqlite3를 사용하고 있습니다. 때문에 컨테이너를 내리고 올릴때마다 새로 sqlite 파일이 생성되므로, 초기화됩니다.
+- 이 문제를 해결하려면 RDS를 사용하거나 docker volume을 사용해서 sqlite를 EC2에 기록해 두도록 하면 됩니다. 이는 생략하였습니다.
+
+## Deploy failover 전략
+- EC2에 있는 shell script 실행 중 docker compose 컨테이너를 내려버리고, 다시 올려버리는 과정을 수행합니다.
+- 만약 스크립트 실행 후 컨테이너 헬스 체크에 오류가 발생했다면, 기존 컨테이너를 다시 내리고
+- 이전 버전의 도커 이미지를 ECR에서 가져와서 컨테이너를 올리도록 쉘 스크립트를 작성해주면 됩니다.
