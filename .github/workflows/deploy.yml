@@ -63,7 +63,6 @@ jobs:
             # 컨테이너 상태 확인
             if docker ps | grep -q "${{ secrets.ECR_REPOSITORY_NAME }}"; then
               echo "Container is running successfully"
-              exit 0
             else
               echo "Container is not running. Failover to previous image"
               docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
