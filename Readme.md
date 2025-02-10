@@ -167,7 +167,7 @@ docker compose down
 - 단순히 Elastic IP를 하나 할당하였으며, SSH, Django application port 연결을 위해 Security group을 구성하였습니다.
 - 본래 Elastic IP는 잘 사용하지 않으나, 고정된 IP가 필요하므로 사용하였습니다.
 - 현재 데이터베이스를 Docker 내부에 존재하는 sqlite3를 사용하고 있습니다. 때문에 컨테이너를 내리고 올릴때마다 새로 sqlite 파일이 생성되므로, 초기화됩니다.
-- 이 문제를 해결하려면 RDS를 사용하거나 docker volume을 사용해서 sqlite를 EC2에 기록해 두도록 하면 됩니다. 이는 생략하였습니다.
+- 이 문제를 해결하려면 RDS를 사용하거나 docker volume을 사용해서 sqlite를 EC2에 기록해 두도록 하면 됩니다.
 
 ## Deploy failover 전략
 - EC2에 있는 shell script 실행 중 docker compose 컨테이너를 내려버리고, 다시 올려버리는 과정을 수행합니다.

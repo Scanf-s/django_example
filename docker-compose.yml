@@ -9,14 +9,19 @@ services:
       - container_network
 
   backend: # Django
-    build: .
+    build: library:latest
     ports:
       - "8000:8000"
     networks:
       - container_network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - sqlite_db:/app
 
 networks:
   container_network:
     driver: bridge
+
+volumes:
+  sqlite_db:
