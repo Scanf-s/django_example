@@ -10,9 +10,11 @@
 #### Redis를 지정하기 이전, API 속도
 
 테스트 데이터셋으로 약 500개의 Book을 생성하여 SQLite3에 저장한 상태입니다.
+
 ![스크린샷 2025-02-11 00-21-57](https://github.com/user-attachments/assets/4a585cd5-f81d-4f57-973f-dc2eafc550a2)
 
 참고로, API를 통해 총 500개의 데이터셋을 생성하는데 걸린 시간은 아래 사진과 같습니다.
+
 ![스크린샷 2025-02-11 01-33-51](https://github.com/user-attachments/assets/57766229-723a-4d80-bd01-0104619aea0e)
 
 레디스를 적용하기 이전, Book에 대한 GET API 쿼리 시, 500개의 데이터셋을 모두 가져오는 경우 35ms ~ 48ms가 소요됩니다.
