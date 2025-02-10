@@ -95,7 +95,6 @@ class BookTestCase(APITestCase):
             data={"book_id": 1, "quantity": 123},
             format="json",
         )
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_loans_by_user(self):
