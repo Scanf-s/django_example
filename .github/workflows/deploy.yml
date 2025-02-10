@@ -70,7 +70,7 @@ jobs:
               docker compose up -d
             fi
             
-            # Django initialize 단계에서 오류 시 이전 docker 이미지(stable 태그)로 롤백
+            # Django initialize 단계에서 오류 시 이전 docker 이미지인 stable 태그 이미지로 롤백
             if docker compose logs | grep -q "exception"; then
               echo "Django has crashed"
               docker compose down
