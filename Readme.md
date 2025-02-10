@@ -319,3 +319,28 @@ docker compose version
 - EC2에 있는 shell script 실행 중 docker compose 컨테이너를 내려버리고, 다시 올려버리는 과정을 수행합니다.
 - 만약 스크립트 실행 후 컨테이너 헬스 체크에 오류가 발생했다면, 기존 컨테이너를 다시 내리고
 - 이전 버전의 도커 이미지를 ECR에서 가져와서 컨테이너를 올리도록 쉘 스크립트를 작성해주면 됩니다.
+
+# Terraform을 사용한 배포환경 구성
+
+## Prerequisites
+1. Terraform을 사용하기 위해서는, 본인의 컴퓨터에 Terraform을 설치해야 합니다. 설치 방법은 검색을 통해 알아서 설치해주세요
+2. 뿐만 아니라 AWS 계정이 있어야 하며, AWS IAM User의 access token과 secret token이 필요합니다.
+3. AWS CLI가 본인 컴퓨터에 설치되어 있어야 합니다. Terraform에서 IAM User의 token을 자동으로 불러오기 위해서는, aws credentials 설정을 수행해야 합니다. 이 부분도 검색을 통해 알아서 설정해주세요
+
+### Ubuntu 기준
+
+```shell
+# 1. move to project_dir/terraform
+cd path-to-project/terraform
+
+# 2. terraform plugin 설치
+terraform init
+
+# 3. terraform 실행
+terraform plan
+terraform apply # 입력창 뜨면 yes 입력
+
+# 4. 만든거 모두 삭제하고 싶으면
+terraform destroy # 입력창 뜨면 yes 입력
+```
+
