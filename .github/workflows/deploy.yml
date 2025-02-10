@@ -1,0 +1,88 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
+
+jobs:
+  deploy:
+    name: Deploy Docker image to ECR and Run docker image in EC2 instance
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 Checkout
+        uses: actions/checkout@v4
+
+      - name: AWS Credentials 가져오기
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: AWS ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 백엔드 도커 이미지 생성 및 배포
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # 도커 이미지 생성
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          
+          # ECR로 commit sha 태그 이미지 PUSH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: EC2에 배포 및 백엔드 어플리케이션 실행
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
+            export IMAGE_TAG=${{ github.sha }}
+            ./deploy.sh
+
+      - name: 배포 결과 확인
+        if: always()
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # 컨테이너 상태 확인
+            if docker ps | grep -q "${{ secrets.ECR_REPOSITORY_NAME }}"; then
+              echo "Container is running successfully"
+              exit 0
+            else
+              echo "Container is not running. Failover to previous image"
+              docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
+              docker compose up -d
+            fi
+            
+            # Django initialize 단계에서 오류 시 이전 docker 이미지(stable 태그)로 롤백
+            if docker compose logs | grep -q "exception"; then
+              echo "Django has crashed"
+              docker compose down
+              docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
+              docker compose up -d
+            else
+              echo "Django is running successfully. Create backup image"
+            
+              # stable 태그로도 이미지 생성
+              docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:stable
+            
+              # stable 태그 이미지도 ECR로 PUSH (롤백 시 사용 예정)
+              docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
+              exit 0
+            fi
