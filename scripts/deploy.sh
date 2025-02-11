@@ -24,5 +24,5 @@ docker image prune -af
 echo "✅ Done"
 
 echo "🚀 Run new container ....."
-docker compose up -d
+docker compose -f docker-compose.yml up -d
 echo "🎉 Done"
