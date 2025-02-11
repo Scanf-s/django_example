@@ -30,11 +30,11 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: curl --fail http://127.0.0.1:8000/api/v1/health-check || exit 1
-      interval: 30s
+      test: curl --fail http://127.0.0.1:8000/api/v1/common/health-check || exit 1
+      interval: 10s
       timeout: 10s
       retries: 1
-      start_period: 15s
+      start_period: 10s
 
 networks:
   container_network:

@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
+        test_modules: ["user", "book", "loan", "tag", "jwt_auth", "common"]
 
     outputs:
       isort: ${{ steps.isort_output.outputs.isort_results }}
