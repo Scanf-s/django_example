@@ -177,14 +177,15 @@ terraform destroy -var-file="prod.tfvars" # 입력창 뜨면 yes 입력 또는 -
 
 ---
 
-# 4. CI/CD 설계 및 구현
+# 4. 리소스 생성 후 EC2 설정
 
 ## 사전 설정
+
+- 아래 과정은 미리 EC2에서 진행하여, AMI를 만들어두면 추후 다른 프로젝트 진행 시 매우 도움이 됩니다!!
 
 ### 1. Terraform으로 생성한 EC2에 SSH에 접속 
 
 ### 2. docker-compose.yml 생성 및 아래처럼 작성해주세요
-- 사실 EC2에 .env를 생성하여 백엔드 어플리케이션 환경 변수를 편집해서 지정해주는게 맞는데, 여기서는 생략했습니다.
 ```text
 services:
 
@@ -195,17 +196,34 @@ services:
       - "6379:6379"
     networks:
       - container_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   backend: # Django
-    build: "${BACKEND_IMAGE}"
+    image: "${BACKEND_IMAGE}"
     ports:
       - "8000:8000"
+    env_file:
+      - ".env"
     networks:
       - container_network
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - sqlite_db:/app
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://localhost:8000/ || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 1
+      start_period: 15s
 
 networks:
   container_network:
@@ -230,10 +248,10 @@ docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG || { echo "❌ Failed to do
 echo "✅ Done"
 
 # .env 파일 확인
-# if [ ! -f ~/.env  ]; then
-#         echo "⚠️  .env file must be in EC2 😱😱😱"
-#         exit 1
-# fi
+if [ ! -f ~/.env  ]; then
+        echo "⚠️  .env file must be in EC2 😱😱😱"
+        exit 1
+fi
 
 echo "✋ Stop and remove current container ....."
 docker compose down
@@ -245,7 +263,8 @@ docker image prune -f
 echo "✅ Done"
 
 echo "🚀 Run new container ....."
-docker compose up --build -d
+docker compose pull
+docker compose up -d
 echo "🎉 Done"
 ```
 
@@ -254,7 +273,58 @@ echo "🎉 Done"
 chmod 744 deploy.sh
 ```
 
-### 5. EC2에 Docker 설치
+### 5. health-checker.sh 작성
+```shell
+cat current-backend-image.txt >> $BACKEND_IMAGE
+            
+# 컨테이너 만들어졌는지 확인
+BACKEND_CONTAINER_ID=$(docker ps -q --filter "ancestor=$BACKEND_IMAGE")
+if [ -n "$BACKEND_CONTAINER_ID" ]; then
+  echo "Container has created successfully"
+else
+  echo "Container is not created. Failover to previous image"
+  docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
+  docker compose up -d
+fi
+
+# 컨테이너 실행중인지 확인
+RUNNING_STATE=$(docker inspect -f '{{ .State.Running }}' "$BACKEND_CONTAINER_ID")
+if [ "$RUNNING_STATE" = "true" ]; then
+  echo "Container is running"
+else
+  echo "Container is not running. Failover to previous image"
+  docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
+  docker compose up -d
+fi
+
+echo "Sleep for a while..."
+sleep 30s
+
+# Django application이에서 오류 시 이전 docker 이미지인 stable 태그 이미지로 롤백
+CONTAINER_STATUS=$(docker inspect -f '{{ .State.Status }}' "$BACKEND_CONTAINER_ID")
+if [ "$CONTAINER_STATUS" =  "exited" ]; then
+  echo "Django has crashed"
+  docker compose down
+  docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
+  docker compose up -d
+else
+  echo "Django is running successfully. Create backup image"
+
+  # stable 태그로도 이미지 생성
+  docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:stable
+
+  # stable 태그 이미지도 ECR로 PUSH (롤백 시 사용 예정)
+  docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
+  exit 0
+fi
+```
+
+### 6. 권한 수정
+```shell
+chmod 744 health-checker.sh
+```
+
+### 7. EC2에 Docker 설치
 ```shell
 sudo yum install docker -y
 sudo service docker start
@@ -273,11 +343,26 @@ sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 docker compose version
 ```
 
-### 6. aws configure 명령 실행
+### 8. aws configure 명령 실행
 - IAM User의 access key, secret key, aws region 정보를 넣어주시면 됩니다.
 
-### 7. 전부 다 구성하였다면, 아래와 같이 나옵니다.
+### 9. .env 파일 생성
+```text
+# Django
+SECRET_KEY=배포환경에서 사용할 시크릿 키
+
+# JWT
+AUTH_HEADER=Bearer
+JWT_ALGORITHM=JWT 알고리즘 지정
+JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
+```
+
+### 8. 전부 다 구성하였다면, 아래와 같이 나옵니다.
 (ec2 캡쳐 화면)
+
+---
+
+# 5. CI/CD 설계 및 구현
 
 ## Architecture preview
 
@@ -322,3 +407,9 @@ docker compose version
 - EC2에 있는 shell script 실행 중 docker compose 컨테이너를 내려버리고, 다시 올려버리는 과정을 수행합니다.
 - 만약 스크립트 실행 후 컨테이너 헬스 체크에 오류가 발생했다면, 기존 컨테이너를 다시 내리고
 - 이전 버전의 도커 이미지를 ECR에서 가져와서 컨테이너를 올리도록 쉘 스크립트를 작성해주면 됩니다.
+
+## Github actions secret 설정
+
+****!!Github actions를 사용하기 위해서는 사진과 같은 환경변수 지정이 반드시 필요합니다.!!****
+
+(Github secret 화면)
