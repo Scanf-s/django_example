@@ -1,4 +1,4 @@
-# 목차
+![스크린샷 2025-02-12 01-18-45](https://github.com/user-attachments/assets/ef043caf-66a1-4805-9b2b-0081f6b63a81)# 목차
 1. 프로젝트 실행 방법
 2. 캐시 전략 및 API 성능 테스트
 3. Terraform을 사용한 배포 환경 구성
@@ -228,7 +228,7 @@ JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 
 ### 7. 전부 다 구성하였다면, 아래와 같이 나옵니다.
 
-(ec2 캡쳐 화면)
+![스크린샷 2025-02-12 00-19-34](https://github.com/user-attachments/assets/ea8a903a-f045-4276-834d-c18fc96c95bc)
 
 ---
 
@@ -242,7 +242,7 @@ JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 
 ****!!Github actions를 사용하기 위해서는 사진과 같은 환경변수 지정이 반드시 필요합니다.!!****
 
-(GitHub secret 화면)
+![스크린샷 2025-02-12 00-53-48](https://github.com/user-attachments/assets/606a7ddb-941c-42da-b43c-7e31aceebb3e)
 
 ## CI 설계
 
@@ -288,4 +288,33 @@ JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 
 ## 구현 후 실제 실행 화면
 
-(이미지)
+### Github Actions 실행 결과
+
+![스크린샷 2025-02-12 01-15-29](https://github.com/user-attachments/assets/7949f082-e91f-40d4-9480-9163213c5333)
+
+![스크린샷 2025-02-12 01-15-44](https://github.com/user-attachments/assets/5d3a7d34-ffec-453a-9c37-dc838b4aae7f)
+
+![스크린샷 2025-02-12 01-18-31](https://github.com/user-attachments/assets/b000d90a-f322-478a-bce9-a64490f37490)
+
+![스크린샷 2025-02-12 01-18-39](https://github.com/user-attachments/assets/cbcac076-6d63-4a8c-8b9f-7c5d1f18d7cf)
+
+![스크린샷 2025-02-12 01-18-45](https://github.com/user-attachments/assets/65770294-6888-4d7c-9406-1b56faa12fd9)
+
+![스크린샷 2025-02-12 01-19-02](https://github.com/user-attachments/assets/9525a5c0-47e6-47ae-9042-a0b5335b46ea)
+
+### 컨테이너 실행 결과
+
+![스크린샷 2025-02-12 01-31-03](https://github.com/user-attachments/assets/9c6b7e62-4e0e-42b3-ad18-7c8fb5760e99)
+
+### 배포 환경 API 실행 결과
+
+![스크린샷 2025-02-12 01-32-51](https://github.com/user-attachments/assets/ff39881e-ec6c-41cf-89cf-1fd7767c779e)
+
+![스크린샷 2025-02-12 01-33-05](https://github.com/user-attachments/assets/10624380-44e7-4f04-9152-71fa480c619f)
+
+![스크린샷 2025-02-12 01-33-29](https://github.com/user-attachments/assets/2610ee77-6ec2-48aa-8b84-fa32f4e82d45)
+
+![스크린샷 2025-02-12 01-34-06](https://github.com/user-attachments/assets/9dbda8fb-4acc-4728-911e-57e63fcc135e)
+
+
+
