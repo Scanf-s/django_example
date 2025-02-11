@@ -24,7 +24,7 @@ jobs:
           title: 코드 리뷰 요청
           body: |
             ## 코드 수정 내용
-            - ${{ github.event.pull_request.title }}
+            - Hello 123
 
 #  test:
 #    name: Django API Test
