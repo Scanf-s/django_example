@@ -6,25 +6,6 @@ on:
       - uijong/*
 
 jobs:
-  AUTO_PR:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Pull request 생성
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          commit-message: Update report
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
-          base: 3.cicd-and-deploy
-          branch: ${{ github.ref }}
-          assignees: ${{ github.actor }}
-          title: 코드 리뷰 요청
-          body: |
-            ## 코드 수정 내용
-            - Hello 123
 
   TEST:
     name: Django Module Test
@@ -40,6 +21,11 @@ jobs:
     strategy:
       matrix:
         test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
+
+    outputs:
+      isort: ${{ steps.isort_output.outputs.isort_results }}
+      black: ${{ steps.black_output.outputs.black_results }}
+      test: ${{ steps.test_output.outputs.test_results }}
 
     steps:
       - name: 레포지토리 Checkout
@@ -61,17 +47,56 @@ jobs:
         shell: bash
 
       - name: 코드 스타일 검사 (isort)
+        id: isort_output
         run: |
-          poetry run isort . --check-only
+          isort_results=$(poetry run isort . --check-only)
+          echo "lint_result<<EOF" >> $GITHUB_OUTPUT
+          echo "$lint_results" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 코드 스타일 검사 (black)
+        id: black_output
         run: |
-          poetry run black . --check
+          black_results=$(poetry run black . --check)
+          echo "lint_result<<EOF" >> $GITHUB_OUTPUT
+          echo "$lint_results" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 임시 데이터베이스 Migration
         run: |
           poetry run python manage.py migrate
 
       - name: Django 테스트 실행
+        id: test_output
         run: |
-          poetry run python manage.py test ${{ matrix.test_modules }}
+          test_results=$(poetry run python manage.py test ${{ matrix.test_modules }})
+          echo "test_result<<EOF" >> $GITHUB_OUTPUT
+          echo "$test_results" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  AUTO_PR:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull request 생성
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          commit-message: Update report
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          base: 3.cicd-and-deploy
+          branch: ${{ github.ref }}
+          assignees: ${{ github.actor }}
+          title: 코드 리뷰 요청
+          body: |
+            ## 코드 린트 결과
+            ### isort
+            ${{ needs.TEST.outputs.isort }}
+            
+            ### black
+            ${{ needs.TEST.outputs.black }}
+          
+            ## 테스트 결과
+            ${{ needs.TEST.outputs.test }}
