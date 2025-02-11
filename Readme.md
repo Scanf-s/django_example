@@ -277,8 +277,8 @@ JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 - 만약 스크립트 실행 후 컨테이너 헬스 체크에 오류가 발생했다면, 기존 컨테이너를 다시 내리고
 - 이전 버전의 도커 이미지를 ECR에서 가져와서 컨테이너를 올리도록 쉘 스크립트를 작성해주면 됩니다.
 
-## Github actions secret 설정
+## GitHub actions secret 설정
 
 ****!!Github actions를 사용하기 위해서는 사진과 같은 환경변수 지정이 반드시 필요합니다.!!****
 
-(Github secret 화면)
+(GitHub secret 화면)
