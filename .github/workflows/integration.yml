@@ -85,7 +85,7 @@ jobs:
       all_results: ${{ steps.set_output.outputs.test_results }}
     steps:
       - name: 아티팩트 다운로드
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ./results
 
