@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ TEST ]
     outputs:
-      all_results: ${{ steps.set_output.outputs.test_results }}
+      all_results: ${{ steps.combine_results.outputs.test_results }}
     steps:
       - name: 아티팩트 다운로드
         uses: actions/download-artifact@v4
