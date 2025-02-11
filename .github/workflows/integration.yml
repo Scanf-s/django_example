@@ -50,16 +50,16 @@ jobs:
         id: isort_output
         run: |
           isort_results=$(poetry run isort . --check-only)
-          echo "lint_result<<EOF" >> $GITHUB_OUTPUT
-          echo "$lint_results" >> $GITHUB_OUTPUT
+          echo "isort_results<<EOF" >> $GITHUB_OUTPUT
+          echo "$isort_results" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 코드 스타일 검사 (black)
         id: black_output
         run: |
           black_results=$(poetry run black . --check)
-          echo "lint_result<<EOF" >> $GITHUB_OUTPUT
-          echo "$lint_results" >> $GITHUB_OUTPUT
+          echo "black_results<<EOF" >> $GITHUB_OUTPUT
+          echo "$black_results" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 임시 데이터베이스 Migration
@@ -70,12 +70,13 @@ jobs:
         id: test_output
         run: |
           test_results=$(poetry run python manage.py test ${{ matrix.test_modules }})
-          echo "test_result<<EOF" >> $GITHUB_OUTPUT
+          echo "test_results<<EOF" >> $GITHUB_OUTPUT
           echo "$test_results" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
   AUTO_PR:
     runs-on: ubuntu-latest
+    needs: [TEST]
     steps:
       - uses: actions/checkout@v4
 
@@ -93,10 +94,10 @@ jobs:
           body: |
             ## 코드 린트 결과
             ### isort
-            ${{ needs.TEST.outputs.isort_results }}
+            ${{ needs.TEST.outputs.isort }}
             
             ### black
-            ${{ needs.TEST.outputs.black_results }}
+            ${{ needs.TEST.outputs.black }}
           
             ## 테스트 결과
-            ${{ needs.TEST.outputs.test_results }}
+            ${{ needs.TEST.outputs.test }}
