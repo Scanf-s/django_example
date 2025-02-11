@@ -15,12 +15,12 @@ if [ ! -f ~/.env  ]; then
 fi
 
 echo "✋ Stop and remove current container ....."
-docker compose down
+docker compose -f docker-compose.yml down
 echo "✅ Done"
 
 echo "🧹 Clear unused docker conatiners and images ....."
-docker container prune -af
-docker image prune -af
+docker container prune -f
+docker image prune -f
 echo "✅ Done"
 
 echo "🚀 Run new container ....."
