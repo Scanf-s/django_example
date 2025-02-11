@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ TEST ]
     outputs:
-      all_results: ${{ steps.combine_results.outputs.test_results }}
+      test_results: ${{ steps.combine_results.outputs.test_results }}
     steps:
       - name: 아티팩트 다운로드
         uses: actions/download-artifact@v4
@@ -100,7 +100,7 @@ jobs:
 
   AUTO_PR:
     runs-on: ubuntu-latest
-    needs: [AGGREGATE]
+    needs: [TEST, AGGREGATE]
     steps:
       - uses: actions/checkout@v4
 
@@ -124,4 +124,4 @@ jobs:
             ${{ needs.TEST.outputs.black }}
           
             ## 테스트 결과
-            ${{ needs.AGGREGATE.outputs.all_results }}
+            ${{ needs.AGGREGATE.outputs.test_results }}
