@@ -51,7 +51,7 @@ jobs:
             export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
             export IMAGE_TAG=${{ github.sha }}
             export BACKEND_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-            echo "$BACKEND_IMAGE" >> current-backend-image.txt
+            echo "$BACKEND_IMAGE" > current-backend-image.txt
             ./deploy.sh
 
       - name: 배포 결과 확인

@@ -1,4 +1,6 @@
+# shellcheck disable=SC2155
 export BACKEND_IMAGE=$(cat current-backend-image.txt)
+echo "✋ Health check for $BACKEND_IMAGE"
 
 # 컨테이너 만들어졌는지 확인
 BACKEND_CONTAINER_ID=$(docker ps -q --filter "ancestor=$BACKEND_IMAGE")
