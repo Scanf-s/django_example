@@ -92,7 +92,7 @@ jobs:
       - name: 테스트 결과 합치기
         id: combine_results
         run: |
-          cat ./results/test_result-*/test_result.txt > combined.txt
+          cat ./results/test-result-*/test-result.txt > combined.txt
           echo "test_results<<EOF" >> $GITHUB_OUTPUT
           cat combined.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
