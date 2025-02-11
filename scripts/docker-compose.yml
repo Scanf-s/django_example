@@ -14,7 +14,7 @@ services:
       retries: 3
       start_period: 30s
 
-  backend: # Django
+  backend:
     image: "${BACKEND_IMAGE}"
     ports:
       - "8000:8000"
