@@ -32,10 +32,10 @@ jobs:
     env:
       DJANGO_SETTINGS_MODULE: "config.settings"
       DJANGO_DEBUG_MODE: true
-      SECRET_KEY: {{ secrets.DJANGO_SECRET_KEY }} # Django secret key
-      AUTH_HEADER: {{ secrets.JWT_AUTH_HEADER }} # JWT authentication header
-      JWT_SECRET_KEY: {{ secrets.JWT_SECRET_KEY }} # JWT secret key
-      JWT_ALGORITHM: {{ secrets.JWT_ALGORITHM }} # JWT algorithm
+      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }} # Django secret key
+      AUTH_HEADER: ${{ secrets.JWT_AUTH_HEADER }} # JWT authentication header
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }} # JWT secret key
+      JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }} # JWT algorithm
 
     strategy:
       matrix:
