@@ -237,9 +237,15 @@ JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 
 ![image](https://github.com/user-attachments/assets/44dae9be-2382-44a1-af63-380fd913b49e)
 
+## GitHub actions secret 설정
+
+****!!Github actions를 사용하기 위해서는 사진과 같은 환경변수 지정이 반드시 필요합니다.!!****
+
+(GitHub secret 화면)
+
 ## CI 설계
 
-### 가정
+### 구현 과정
 - 현재 구현한 백엔드 어플리케이션은 테스트코드가 40개정도입니다. 
 - 만약 어떤 개발자가 테스트코드로 코드를 검증하지 않고 오류가 남아있는 채로 그냥 바로 Github에 PR을 올렸다면 
 - 이를 PR 단계에서 Merge할 수 없도록 알려주어야 합니다.
@@ -252,18 +258,21 @@ JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 
 ## CD 설계
 
-### 가정
+### 구현 과정
 - 현재 프로젝트는 docker와 docker compose를 사용합니다.
 - 주로 AWS를 많이 사용해봐서, 익숙한 AWS에 배포하려고 합니다.
-- AWS의 ECR에 백엔드 어플리케이션을 빌드한 도커 이미지를 PUSH해야하고, EC2인스턴스에는 따로 직접 구성해놓은 docker-compose.yml만 있으면 됩니다.
-- 또한, docker-compose.yml을 그대로 사용하기보다, docker-compose-prod.yml을 따로 서버측에 구성해두어서 서버전용 환경 변수를 편집하는것이 바람직합니다.
-- 또한 aws credential 설정 및 ecr로부터 이미지 다운로드, docker-compose.yml을 실행하는 스크립트를 작성해야 합니다. 이는 하단의 deploy.sh를 참고해주세요
+- AWS의 ECR에 백엔드 어플리케이션을 빌드한 도커 이미지를 PUSH해야하고, EC2인스턴스에는 따로 직접 구성해놓은 docker-compose.yml과 .env만 있으면 됩니다.
+- 또한 aws credential 설정 및 ecr로부터 이미지 다운로드, docker-compose.yml을 실행하는 쉘 스크립트를 작성해야 합니다.
 - AWS 비용문제가 발생할 수 있기 때문에 도메인 연결, HTTPS 적용은 하지 않았으며, 프리티어 범위에서 단순히 필요한 리소스만 사용하여 구현하였습니다.
   - 단, Public 통신 시 AWS 정책에 의해 비용이 부과되는 점 참고 바랍니다.
+- 성공적으로 컨테이너를 올렸을 때, Health check를 위해 Docker 자체 기능인 Health checker를 사용하여 컨테이너의 실행 여부를 확인할 수 있습니다.
+- 또한, 롤백을 구현하기 위해 쉘 스크립트를 활용하여 실패시 이전 성공 이미지인 stable tag 이미지를 PULL 하여 다시 컨테이너를 올려야 합니다.
 
 ### 구현
-- Github Actions를 사용하여 CD 스크립트를 작성하고, 위 가정을 만족하도록 구성해야 합니다.
-- .github/workflows/deployment.yml에 작성하였습니다.
+- scripts/deploy.sh
+- scripts/docker-compose.yml
+- scripts/health-checker.sh
+- .github/workflows/deployment.yml
 
 ### AWS 관련
 - EC2는 Private subnet에 위치시키는 것이 맞으나, NAT 게이트웨이를 따로 구성해야하고 추가적으로 설정을 해주어야 하기 때문에 Public subnet에 위치시켰습니다.
@@ -277,8 +286,6 @@ JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 - 만약 스크립트 실행 후 컨테이너 헬스 체크에 오류가 발생했다면, 기존 컨테이너를 다시 내리고
 - 이전 버전의 도커 이미지를 ECR에서 가져와서 컨테이너를 올리도록 쉘 스크립트를 작성해주면 됩니다.
 
-## GitHub actions secret 설정
+## 구현 후 실제 실행 화면
 
-****!!Github actions를 사용하기 위해서는 사진과 같은 환경변수 지정이 반드시 필요합니다.!!****
-
-(GitHub secret 화면)
+(이미지)

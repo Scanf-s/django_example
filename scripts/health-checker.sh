@@ -47,7 +47,7 @@ else
   echo "✅ Django is running successfully. Create backup image"
 
   # stable 태그로도 이미지 생성
-  docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:stable
+  docker tag $BACKEND_IMAGE $ECR_REGISTRY/$ECR_REPOSITORY:stable
 
   # stable 태그 이미지도 ECR로 PUSH (롤백 시 사용 예정)
   docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
