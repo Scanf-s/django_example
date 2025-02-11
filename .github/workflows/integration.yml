@@ -70,7 +70,7 @@ jobs:
         id: test_output
         run: |
           test_results=$(poetry run python manage.py test ${{ matrix.test_modules }})
-          echo "$test_results" > test_result.txt
+          echo "$test_results" > test-result.txt
 
       - name: 아티팩트 업로드
         uses: actions/upload-artifact@v4
