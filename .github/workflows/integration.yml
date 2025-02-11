@@ -76,7 +76,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-result-${{ matrix.test_modules }}
-          path: test_result.txt
+          path: test-result.txt
 
   AGGREGATE:
     runs-on: ubuntu-latest
