@@ -15,7 +15,7 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl && \
     curl -sSL https://install.python-poetry.org | python3 - && \
-    poetry --version \
+    poetry --version && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 작업 디렉토리 설정
@@ -31,6 +31,11 @@ RUN poetry install --no-root --no-interaction
 FROM python:3.12-slim AS deploy
 
 LABEL maintainer="sullungim"
+
+# Health Check를 위한 CURL 설치
+RUN apt-get update &&  \
+    apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # 환경변수 설정
 ENV PATH="/opt/poetry/bin:$PATH"
