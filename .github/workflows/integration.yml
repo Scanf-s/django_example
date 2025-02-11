@@ -6,7 +6,7 @@ on:
       - uijong/*
 
 jobs:
-  create_pull_request:
+  Auto_Pull_Request:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
           commit-message: Update report
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
-          base: main
+          base: 3.cicd-and-deploy
           branch: ${{ github.ref }}
           assignees: ${{ github.actor }}
           reviewers: 'Scanf-s'
