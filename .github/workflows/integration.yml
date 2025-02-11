@@ -21,7 +21,6 @@ jobs:
           base: 3.cicd-and-deploy
           branch: ${{ github.ref }}
           assignees: ${{ github.actor }}
-          reviewers: 'Scanf-s'
           title: 코드 리뷰 요청
           body: |
             ## 코드 수정 내용
