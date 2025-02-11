@@ -19,11 +19,10 @@ docker compose down
 echo "✅ Done"
 
 echo "🧹 Clear unused docker conatiners and images ....."
-docker container prune -f
-docker image prune -f
+docker container prune -af
+docker image prune -af
 echo "✅ Done"
 
 echo "🚀 Run new container ....."
-docker compose pull
 docker compose up -d
 echo "🎉 Done"
