@@ -183,90 +183,9 @@ terraform destroy -var-file="prod.tfvars" # 입력창 뜨면 yes 입력 또는 -
 
 - 아래 과정은 미리 EC2에서 진행하여, AMI를 만들어두면 추후 다른 프로젝트 진행 시 매우 도움이 됩니다!!
 
-### 1. Terraform으로 생성한 EC2에 SSH에 접속 
+### 1. Terraform으로 생성한 EC2에 SSH에 접속
 
-### 2. docker-compose.yml 생성 및 아래처럼 작성해주세요
-```text
-services:
-
-  redis:
-    image: redis:latest
-    command: ["redis-server", "--save", "", "--loglevel", "warning"]
-    ports:
-      - "6379:6379"
-    networks:
-      - container_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-
-  backend: # Django
-    image: "${BACKEND_IMAGE}"
-    ports:
-      - "8000:8000"
-    env_file:
-      - ".env"
-    networks:
-      - container_network
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - sqlite_db:/app
-    depends_on:
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: curl --fail http://localhost:8000/ || exit 1
-      interval: 30s
-      timeout: 10s
-      retries: 1
-      start_period: 15s
-
-networks:
-  container_network:
-    driver: bridge
-
-volumes:
-  sqlite_db:
-```
-
-### 3. deploy.sh 작성
-- 아래 스크립트를 복사 및 붙여넣기 해주세요
-- 만약 2번 과정에서 따로 .env 파일을 지정했다면, .env 파일 확인 부분의 주석을 해제해주세요
-```shell
-# AWS ECR Login
-echo "🚀 Login to ECR ....."
-aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
-echo "✅ Successfully Logged in"
-
-# Docker 작업
-echo "📦 Pull Latest Image from ECR Registry ....."
-docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG || { echo "❌ Failed to download latest image from resgistry"; exit 1; }
-echo "✅ Done"
-
-# .env 파일 확인
-if [ ! -f ~/.env  ]; then
-        echo "⚠️  .env file must be in EC2 😱😱😱"
-        exit 1
-fi
-
-echo "✋ Stop and remove current container ....."
-docker compose down
-echo "✅ Done"
-
-echo "🧹 Clear unused docker conatiners and images ....."
-docker container prune -f
-docker image prune -f
-echo "✅ Done"
-
-echo "🚀 Run new container ....."
-docker compose pull
-docker compose up -d
-echo "🎉 Done"
-```
+### 2. EC2에 프로젝트의 scripts 아래에 있는 모든 파일을 복사해서 넣어줍니다.
 
 ### 4. deploy.sh 권한 수정
 ```shell
@@ -275,7 +194,7 @@ chmod 744 deploy.sh
 
 ### 5. health-checker.sh 작성
 ```shell
-cat current-backend-image.txt >> $BACKEND_IMAGE
+export BACKEND_IMAGE=$(cat current-backend-image.txt)
             
 # 컨테이너 만들어졌는지 확인
 BACKEND_CONTAINER_ID=$(docker ps -q --filter "ancestor=$BACKEND_IMAGE")
