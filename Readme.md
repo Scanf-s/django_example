@@ -197,7 +197,7 @@ services:
       - container_network
 
   backend: # Django
-    build: library:latest
+    build: "${BACKEND_IMAGE}"
     ports:
       - "8000:8000"
     networks:
@@ -273,7 +273,10 @@ sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 docker compose version
 ```
 
-### 6. 전부 다 구성하였다면, 아래와 같이 나옵니다.
+### 6. aws configure 명령 실행
+- IAM User의 access key, secret key, aws region 정보를 넣어주시면 됩니다.
+
+### 7. 전부 다 구성하였다면, 아래와 같이 나옵니다.
 (ec2 캡쳐 화면)
 
 ## Architecture preview
