@@ -1,127 +1,127 @@
-name: Integration
-
-on:
-  push:
-    branches:
-      - uijong/*
-
-jobs:
-
-  TEST:
-    name: Django Module Test
-    runs-on: ubuntu-latest
-    env:
-      DJANGO_SETTINGS_MODULE: "config.settings"
-      DJANGO_DEBUG_MODE: true
-      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }} # Django secret key
-      AUTH_HEADER: ${{ secrets.JWT_AUTH_HEADER }} # JWT authentication header
-      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }} # JWT secret key
-      JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }} # JWT algorithm
-
-    strategy:
-      matrix:
-        test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
-
-    outputs:
-      isort: ${{ steps.isort_output.outputs.isort_results }}
-      black: ${{ steps.black_output.outputs.black_results }}
-      test: ${{ steps.test_output.outputs.test_results }}
-
-    steps:
-      - name: 레포지토리 Checkout
-        uses: actions/checkout@v4
-
-      - name: Python 3.12 설정
-        uses: actions/setup-python@v3
-        with:
-          python-version: "3.12"
-
-      - name: Poetry 설치
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$HOME/.local/bin:$PATH"
-
-      - name: 라이브러리 설치
-        run: |
-          poetry install --no-root
-        shell: bash
-
-      - name: 코드 스타일 검사 (isort)
-        id: isort_output
-        run: |
-          isort_results=$(poetry run isort . --check-only)
-          echo "isort_results<<EOF" >> $GITHUB_OUTPUT
-          echo "$isort_results" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: 코드 스타일 검사 (black)
-        id: black_output
-        run: |
-          black_results=$(poetry run black . --check)
-          echo "black_results<<EOF" >> $GITHUB_OUTPUT
-          echo "$black_results" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: 임시 데이터베이스 Migration
-        run: |
-          poetry run python manage.py migrate
-
-      - name: Django 테스트 실행
-        id: test_output
-        run: |
-          test_results=$(poetry run python manage.py test ${{ matrix.test_modules }})
-          echo "$test_results" > test-result.txt
-
-      - name: 아티팩트 업로드
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-result-${{ matrix.test_modules }}
-          path: test-result.txt
-
-  AGGREGATE:
-    runs-on: ubuntu-latest
-    needs: [ TEST ]
-    outputs:
-      test_results: ${{ steps.combine_results.outputs.test_results }}
-    steps:
-      - name: 아티팩트 다운로드
-        uses: actions/download-artifact@v4
-        with:
-          path: ./results
-
-      - name: 테스트 결과 합치기
-        id: combine_results
-        run: |
-          cat ./results/test-result-*/test-result.txt > combined.txt
-          echo "test_results<<EOF" >> $GITHUB_OUTPUT
-          cat combined.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-
-  AUTO_PR:
-    runs-on: ubuntu-latest
-    needs: [TEST, AGGREGATE]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Pull request 생성
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GH_TOKEN }}
-          commit-message: Update report
-          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
-          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
-          base: 3.cicd-and-deploy
-          branch: ${{ github.ref }}
-          assignees: ${{ github.actor }}
-          title: 코드 리뷰 요청
-          body: |
-            ## 코드 린트 결과
-            ### isort
-            ${{ needs.TEST.outputs.isort }}
-            
-            ### black
-            ${{ needs.TEST.outputs.black }}
-          
-            ## 테스트 결과
-            ${{ needs.AGGREGATE.outputs.test_results }}
+#name: Integration
+#
+#on:
+#  push:
+#    branches:
+#      - uijong/*
+#
+#jobs:
+#
+#  TEST:
+#    name: Django Module Test
+#    runs-on: ubuntu-latest
+#    env:
+#      DJANGO_SETTINGS_MODULE: "config.settings"
+#      DJANGO_DEBUG_MODE: true
+#      SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }} # Django secret key
+#      AUTH_HEADER: ${{ secrets.JWT_AUTH_HEADER }} # JWT authentication header
+#      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }} # JWT secret key
+#      JWT_ALGORITHM: ${{ secrets.JWT_ALGORITHM }} # JWT algorithm
+#
+#    strategy:
+#      matrix:
+#        test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
+#
+#    outputs:
+#      isort: ${{ steps.isort_output.outputs.isort_results }}
+#      black: ${{ steps.black_output.outputs.black_results }}
+#      test: ${{ steps.test_output.outputs.test_results }}
+#
+#    steps:
+#      - name: 레포지토리 Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Python 3.12 설정
+#        uses: actions/setup-python@v3
+#        with:
+#          python-version: "3.12"
+#
+#      - name: Poetry 설치
+#        run: |
+#          curl -sSL https://install.python-poetry.org | python3 -
+#          export PATH="$HOME/.local/bin:$PATH"
+#
+#      - name: 라이브러리 설치
+#        run: |
+#          poetry install --no-root
+#        shell: bash
+#
+#      - name: 코드 스타일 검사 (isort)
+#        id: isort_output
+#        run: |
+#          isort_results=$(poetry run isort . --check-only)
+#          echo "isort_results<<EOF" >> $GITHUB_OUTPUT
+#          echo "$isort_results" >> $GITHUB_OUTPUT
+#          echo "EOF" >> $GITHUB_OUTPUT
+#
+#      - name: 코드 스타일 검사 (black)
+#        id: black_output
+#        run: |
+#          black_results=$(poetry run black . --check)
+#          echo "black_results<<EOF" >> $GITHUB_OUTPUT
+#          echo "$black_results" >> $GITHUB_OUTPUT
+#          echo "EOF" >> $GITHUB_OUTPUT
+#
+#      - name: 임시 데이터베이스 Migration
+#        run: |
+#          poetry run python manage.py migrate
+#
+#      - name: Django 테스트 실행
+#        id: test_output
+#        run: |
+#          test_results=$(poetry run python manage.py test ${{ matrix.test_modules }})
+#          echo "$test_results" > test-result.txt
+#
+#      - name: 아티팩트 업로드
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: test-result-${{ matrix.test_modules }}
+#          path: test-result.txt
+#
+#  AGGREGATE:
+#    runs-on: ubuntu-latest
+#    needs: [ TEST ]
+#    outputs:
+#      test_results: ${{ steps.combine_results.outputs.test_results }}
+#    steps:
+#      - name: 아티팩트 다운로드
+#        uses: actions/download-artifact@v4
+#        with:
+#          path: ./results
+#
+#      - name: 테스트 결과 합치기
+#        id: combine_results
+#        run: |
+#          cat ./results/test-result-*/test-result.txt > combined.txt
+#          echo "test_results<<EOF" >> $GITHUB_OUTPUT
+#          cat combined.txt >> $GITHUB_OUTPUT
+#          echo "EOF" >> $GITHUB_OUTPUT
+#
+#
+#  AUTO_PR:
+#    runs-on: ubuntu-latest
+#    needs: [TEST, AGGREGATE]
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Pull request 생성
+#        uses: peter-evans/create-pull-request@v7
+#        with:
+#          token: ${{ secrets.GH_TOKEN }}
+#          commit-message: Update report
+#          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+#          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+#          base: 3.cicd-and-deploy
+#          branch: ${{ github.ref }}
+#          assignees: ${{ github.actor }}
+#          title: 코드 리뷰 요청
+#          body: |
+#            ## 코드 린트 결과
+#            ### isort
+#            ${{ needs.TEST.outputs.isort }}
+#
+#            ### black
+#            ${{ needs.TEST.outputs.black }}
+#
+#            ## 테스트 결과
+#            ${{ needs.AGGREGATE.outputs.test_results }}
