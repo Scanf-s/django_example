@@ -51,38 +51,17 @@ jobs:
             export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
             export IMAGE_TAG=${{ github.sha }}
             export BACKEND_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+            echo "$BACKEND_IMAGE" >> current-backend-image.txt
             ./deploy.sh
 
-#      - name: 배포 결과 확인
-#        if: always()
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.EC2_HOST }}
-#          username: ${{ secrets.EC2_USERNAME }}
-#          key: ${{ secrets.EC2_SSH_KEY }}
-#          script: |
-#            # 컨테이너 상태 확인
-#            if docker ps | grep -q "${{ secrets.ECR_REPOSITORY_NAME }}"; then
-#              echo "Container is running successfully"
-#            else
-#              echo "Container is not running. Failover to previous image"
-#              docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
-#              docker compose up -d
-#            fi
-#
-#            # Django initialize 단계에서 오류 시 이전 docker 이미지인 stable 태그 이미지로 롤백
-#            if docker compose logs | grep -q "exception"; then
-#              echo "Django has crashed"
-#              docker compose down
-#              docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
-#              docker compose up -d
-#            else
-#              echo "Django is running successfully. Create backup image"
-#
-#              # stable 태그로도 이미지 생성
-#              docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:stable
-#
-#              # stable 태그 이미지도 ECR로 PUSH (롤백 시 사용 예정)
-#              docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
-#              exit 0
-#            fi
+      - name: 배포 결과 확인
+        if: always()
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
+            ./health-checker.sh
