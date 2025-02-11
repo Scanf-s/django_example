@@ -187,63 +187,13 @@ terraform destroy -var-file="prod.tfvars" # 입력창 뜨면 yes 입력 또는 -
 
 ### 2. EC2에 프로젝트의 scripts 아래에 있는 모든 파일을 복사해서 넣어줍니다.
 
-### 4. deploy.sh 권한 수정
+### 3. 권한 수정
 ```shell
 chmod 744 deploy.sh
-```
-
-### 5. health-checker.sh 작성
-```shell
-export BACKEND_IMAGE=$(cat current-backend-image.txt)
-            
-# 컨테이너 만들어졌는지 확인
-BACKEND_CONTAINER_ID=$(docker ps -q --filter "ancestor=$BACKEND_IMAGE")
-if [ -n "$BACKEND_CONTAINER_ID" ]; then
-  echo "Container has created successfully"
-else
-  echo "Container is not created. Failover to previous image"
-  docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
-  docker compose up -d
-fi
-
-# 컨테이너 실행중인지 확인
-RUNNING_STATE=$(docker inspect -f '{{ .State.Running }}' "$BACKEND_CONTAINER_ID")
-if [ "$RUNNING_STATE" = "true" ]; then
-  echo "Container is running"
-else
-  echo "Container is not running. Failover to previous image"
-  docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
-  docker compose up -d
-fi
-
-echo "Sleep for a while..."
-sleep 30s
-
-# Django application이에서 오류 시 이전 docker 이미지인 stable 태그 이미지로 롤백
-CONTAINER_STATUS=$(docker inspect -f '{{ .State.Status }}' "$BACKEND_CONTAINER_ID")
-if [ "$CONTAINER_STATUS" =  "exited" ]; then
-  echo "Django has crashed"
-  docker compose down
-  docker pull $ECR_REGISTRY/$ECR_REPOSITORY:stable
-  docker compose up -d
-else
-  echo "Django is running successfully. Create backup image"
-
-  # stable 태그로도 이미지 생성
-  docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:stable
-
-  # stable 태그 이미지도 ECR로 PUSH (롤백 시 사용 예정)
-  docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
-  exit 0
-fi
-```
-
-### 6. 권한 수정
-```shell
 chmod 744 health-checker.sh
 ```
 
-### 7. EC2에 Docker 설치
+### 4. EC2에 Docker 설치
 ```shell
 sudo yum install docker -y
 sudo service docker start
@@ -262,10 +212,10 @@ sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 docker compose version
 ```
 
-### 8. aws configure 명령 실행
+### 5. aws configure 명령 실행
 - IAM User의 access key, secret key, aws region 정보를 넣어주시면 됩니다.
 
-### 9. .env 파일 생성
+### 6. .env 파일 생성
 ```text
 # Django
 SECRET_KEY=배포환경에서 사용할 시크릿 키
@@ -276,7 +226,7 @@ JWT_ALGORITHM=JWT 알고리즘 지정
 JWT_SECRET_KEY=배포환경에서 사용할 JWT 시크릿 키
 ```
 
-### 8. 전부 다 구성하였다면, 아래와 같이 나옵니다.
+### 7. 전부 다 구성하였다면, 아래와 같이 나옵니다.
 (ec2 캡쳐 화면)
 
 ---
