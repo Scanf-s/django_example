@@ -17,4 +17,7 @@ resource "aws_eip" "library_backend_fixed_ipv4" {
   tags = {
     Name = "library_eip"
   }
+
+output "ec2_public_ipv4" {
+  value = aws_eip.library_backend_fixed_ipv4.public_ip
 }
