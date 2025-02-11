@@ -17,12 +17,19 @@ else
 fi
 
 # BACKEND_CONTAINER_NAME로 실행한 컨테이너가 잘 올라갔는지 확인
+iteration=0
 export CONTAINER_STATUS=$(docker inspect -f '{{.State.Health.Status}}' $BACKEND_CONTAINER_NAME)
+while [ $iteration -lt 5 ] && [ "$CONTAINER_STATUS" != "healthy" ]; do
+  sleep 5
+  export CONTAINER_STATUS=$(docker inspect -f '{{.State.Health.Status}}' $BACKEND_CONTAINER_NAME)
+  iteration=$((iteration + 1))
+done
+
 if [ "$CONTAINER_STATUS" == "healthy" ]; then
   echo "✅ $BACKEND_CONTAINER_NAME is healthy"
   echo "Create stable image for backup"
 
-  docker tag $BACKEND_IMAGE $ECR_REGISTRY/$ECR_REPOSITORY:stable
+  docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:stable
   docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
 
   echo "✅ Done"
