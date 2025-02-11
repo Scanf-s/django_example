@@ -24,8 +24,6 @@ services:
       - container_network
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    volumes:
-      - sqlite_db:/app
     depends_on:
       redis:
         condition: service_healthy
@@ -39,6 +37,3 @@ services:
 networks:
   container_network:
     driver: bridge
-
-volumes:
-  sqlite_db:
