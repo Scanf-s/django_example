@@ -17,6 +17,8 @@ servers:
   - url: 'http://localhost:8000/api/v1'
 
 tags:
+  - name: server
+    description: 서버 관련
   - name: users
     description: 도서관 사용자
   - name: books
@@ -29,6 +31,22 @@ tags:
     description: JWT 토큰 관련 도메인
 
 paths:
+  /health:
+    get:
+      summary: 서버 Health check
+      tags: [server]
+      responses:
+        '200':
+          description: 서버가 정상적으로 동작함
+          content:
+            application/json:
+        '500':
+          description: 서버가 현재 오류가 있음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /users:
     get:
       summary: 도서관 사용자 리스트 조회 (관리자 전용)
