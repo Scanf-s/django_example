@@ -179,6 +179,103 @@ terraform destroy -var-file="prod.tfvars" # 입력창 뜨면 yes 입력 또는 -
 
 # 4. CI/CD 설계 및 구현
 
+## 사전 설정
+
+### 1. Terraform으로 생성한 EC2에 SSH에 접속 
+
+### 2. docker-compose.yml 생성 및 아래처럼 작성해주세요
+- 사실 EC2에 .env를 생성하여 백엔드 어플리케이션 환경 변수를 편집해서 지정해주는게 맞는데, 여기서는 생략했습니다.
+```text
+services:
+
+  redis:
+    image: redis:latest
+    command: ["redis-server", "--save", "", "--loglevel", "warning"]
+    ports:
+      - "6379:6379"
+    networks:
+      - container_network
+
+  backend: # Django
+    build: library:latest
+    ports:
+      - "8000:8000"
+    networks:
+      - container_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - sqlite_db:/app
+
+networks:
+  container_network:
+    driver: bridge
+
+volumes:
+  sqlite_db:
+```
+
+### 3. deploy.sh 작성
+- 아래 스크립트를 복사 및 붙여넣기 해주세요
+- 만약 2번 과정에서 따로 .env 파일을 지정했다면, .env 파일 확인 부분의 주석을 해제해주세요
+```shell
+# AWS ECR Login
+echo "🚀 Login to ECR ....."
+aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
+echo "✅ Successfully Logged in"
+
+# Docker 작업
+echo "📦 Pull Latest Image from ECR Registry ....."
+docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG || { echo "❌ Failed to download latest image from resgistry"; exit 1; }
+echo "✅ Done"
+
+# .env 파일 확인
+# if [ ! -f ~/.env  ]; then
+#         echo "⚠️  .env file must be in EC2 😱😱😱"
+#         exit 1
+# fi
+
+echo "✋ Stop and remove current container ....."
+docker compose down
+echo "✅ Done"
+
+echo "🧹 Clear unused docker conatiners and images ....."
+docker container prune -f
+docker image prune -f
+echo "✅ Done"
+
+echo "🚀 Run new container ....."
+docker compose up --build -d
+echo "🎉 Done"
+```
+
+### 4. deploy.sh 권한 수정
+```shell
+chmod 744 deploy.sh
+```
+
+### 5. EC2에 Docker 설치
+```shell
+sudo yum install docker -y
+sudo service docker start
+sudo usermod -aG docker ec2-user
+exec bash
+
+# 아래 명령이 잘 실행되는지 확인
+docker run hello-world
+
+# docker compose 설치
+sudo mkdir -p /usr/local/lib/docker/cli-plugins/
+sudo curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-$(uname -m)" -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# 설치 잘 되었는지 확인
+docker compose version
+```
+
+### 6. 전부 다 구성하였다면, 아래와 같이 나옵니다.
+(ec2 캡쳐 화면)
+
 ## Architecture preview
 
 ![image](https://github.com/user-attachments/assets/44dae9be-2382-44a1-af63-380fd913b49e)

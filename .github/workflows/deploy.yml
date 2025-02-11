@@ -47,11 +47,10 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "hello"
-#            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-#            export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
-#            export IMAGE_TAG=${{ github.sha }}
-#            ./deploy.sh
+            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
+            export IMAGE_TAG=${{ github.sha }}
+            ./deploy.sh
 #
 #      - name: 배포 결과 확인
 #        if: always()
