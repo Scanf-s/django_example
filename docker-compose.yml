@@ -9,19 +9,25 @@ services:
       - container_network
 
   backend: # Django
-    build: library:latest
+    build: .
     ports:
       - "8000:8000"
     networks:
       - container_network
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  prometheus:
+    image: prom/prometheus
     volumes:
-      - sqlite_db:/app
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+    networks:
+      - container_network
 
 networks:
   container_network:
     driver: bridge
-
-volumes:
-  sqlite_db:
