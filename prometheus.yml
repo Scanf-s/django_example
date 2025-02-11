@@ -5,4 +5,9 @@ scrape_configs:
   - job_name: 'backend'
     metrics_path: /metrics
     static_configs:
-      - targets: ['backend:8000']  # 로그 수집 타겟
+      - targets: ['backend:8000']
+
+  - job_name: 'cadvisor'
+    metrics_path: /stats/prometheus
+    static_configs:
+      - targets: ['cadvisor:8080']
