@@ -93,10 +93,10 @@ jobs:
           body: |
             ## 코드 린트 결과
             ### isort
-            ${{ needs.TEST.outputs.isort }}
+            ${{ needs.TEST.outputs.isort_results }}
             
             ### black
-            ${{ needs.TEST.outputs.black }}
+            ${{ needs.TEST.outputs.black_results }}
           
             ## 테스트 결과
-            ${{ needs.TEST.outputs.test }}
+            ${{ needs.TEST.outputs.test_results }}
