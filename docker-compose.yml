@@ -28,6 +28,13 @@ services:
     networks:
       - container_network
 
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
 networks:
   container_network:
     driver: bridge
