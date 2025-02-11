@@ -73,7 +73,7 @@ jobs:
           echo "$test_results" > test_result.txt
 
       - name: 아티팩트 업로드
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-result-${{ matrix.test_modules }}
           path: test_result.txt
