@@ -12,11 +12,12 @@ resource "aws_instance" "library_backend" {
 
 resource "aws_eip" "library_backend_fixed_ipv4" {
   instance = aws_instance.library_backend.id
-  domain = "vpc"
+  domain   = "vpc"
 
   tags = {
     Name = "library_eip"
   }
+}
 
 output "ec2_public_ipv4" {
   value = aws_eip.library_backend_fixed_ipv4.public_ip
