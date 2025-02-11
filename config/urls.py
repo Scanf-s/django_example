@@ -7,5 +7,5 @@ urlpatterns = [
     path("api/v1/books", include("book.urls")),
     path("api/v1/tags", include("tag.urls")),
     path("api/v1/loans", include("loan.urls")),
-    path("api/v1/health", include("common.urls")),
+    path("api/v1/common", include("common.urls")),
 ]
