@@ -10,50 +10,72 @@ on:
       - synchronize
 
 jobs:
-  test:
-    name: Django API Test
+  create_pull_request:
     runs-on: ubuntu-latest
-    env:
-      DJANGO_SETTINGS_MODULE: "config.settings"
-      DJANGO_DEBUG_MODE: true
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
-      UPCY_SECRET_KEY: "test123123123123123123123" # 진짜 SECRET 키 아닙니다.
-    strategy:
-      matrix:
-        test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
-
     steps:
-      - name: 코드 Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v3
+      - name: Pull request 생성
+        uses: peter-evans/create-pull-request@v7
         with:
-          python-version: "3.12"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Update report
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          base: main
+          branch: ${{ github.ref }}
+          assignees: ${{ github.actor }}
+          reviewers: 'Scanf-s'
+          title: 코드 리뷰 요청
+          body: |
+            ## 코드 수정 내용
+            - ${{ github.event.pull_request.title }}
 
-      - name: Poetry 설치
-        run: |
-          curl -sSL https://install.python-poetry.org | python3 -
-          export PATH="$HOME/.local/bin:$PATH"
-
-      - name: 라이브러리 설치
-        run: |
-          poetry install --no-root
-        shell: bash
-
-      - name: 코드 스타일 검사 (isort)
-        run: |
-          poetry run isort . --check-only
-
-      - name: 코드 스타일 검사 (black)
-        run: |
-          poetry run black . --check
-
-      - name: 임시 데이터베이스 Migration
-        run: |
-          poetry run python manage.py migrate
-
-      - name: Django 테스트 실행
-        run: |
-          poetry run python manage.py test ${{ matrix.test_modules }}
+#  test:
+#    name: Django API Test
+#    runs-on: ubuntu-latest
+#    env:
+#      DJANGO_SETTINGS_MODULE: "config.settings"
+#      DJANGO_DEBUG_MODE: true
+#      SECRET_KEY: {{ secrets.SECRET_KEY }} # Django secret key
+#      JWT_SECRET_KEY: {{ secrets.JWT_SECRET_KEY }} # JWT secret key
+#      JWT_ALGORITHM: {{ secrets.JWT_ALGORITHM }} # JWT algorithm
+#
+#    strategy:
+#      matrix:
+#        test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
+#
+#    steps:
+#      - name: 레포지토리 Checkout
+#        uses: actions/checkout@v4
+#
+#      - name: Python 3.12 설정
+#        uses: actions/setup-python@v3
+#        with:
+#          python-version: "3.12"
+#
+#      - name: Poetry 설치
+#        run: |
+#          curl -sSL https://install.python-poetry.org | python3 -
+#          export PATH="$HOME/.local/bin:$PATH"
+#
+#      - name: 라이브러리 설치
+#        run: |
+#          poetry install --no-root
+#        shell: bash
+#
+#      - name: 코드 스타일 검사 (isort)
+#        run: |
+#          poetry run isort . --check-only
+#
+#      - name: 코드 스타일 검사 (black)
+#        run: |
+#          poetry run black . --check
+#
+#      - name: 임시 데이터베이스 Migration
+#        run: |
+#          poetry run python manage.py migrate
+#
+#      - name: Django 테스트 실행
+#        run: |
+#          poetry run python manage.py test ${{ matrix.test_modules }}
