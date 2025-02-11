@@ -1,0 +1,1254 @@
+openapi: 3.1.0
+
+info:
+  title: Library REST API SPEC
+  description: |-
+    이 API 문서는 사용자, 도서관, 도서 대출 정보 생성, 조회, 수정, 삭제를 위한 API 문서입니다.
+    OpenAPI 3.1 스펙을 기반으로 하여 작성되었습니다.
+  version: 1.0.0
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: sullung2yo@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: 'http://localhost:8000/api/v1'
+
+tags:
+  - name: server
+    description: 서버 관련
+  - name: users
+    description: 도서관 사용자
+  - name: books
+    description: 도서
+  - name: tags
+    description: 도서 태그
+  - name: loans
+    description: 도서 대출 정보
+  - name: token
+    description: JWT 토큰 관련 도메인
+
+paths:
+  /common/health-check:
+    get:
+      summary: 서버 Health check
+      tags: [server]
+      responses:
+        '200':
+          description: 서버가 정상적으로 동작함
+          content:
+        '500':
+          description: 서버가 현재 오류가 있음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users:
+    get:
+      summary: 도서관 사용자 리스트 조회 (관리자 전용)
+      tags: [users]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 성공적으로 도서관 사용자 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+        '204':
+          description: 데이터베이스에 사용자 정보가 하나도 없는 경우
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: 도서관 사용자 정보 생성
+      tags: [users]
+      requestBody:
+        required: true
+        description: 사용자 정보 생성 시 필요한 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: 성공적으로 도서관 사용자 정보를 생성한 경우
+        '400':
+          description: 올바르지 않은 사용자 정보를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{user_id}:
+    get:
+      summary: USER_ID를 사용하여 특정 도서관 사용자 정보 조회
+      description: Admin 사용자의 경우에는 아무나 조회가 가능하지만, 일반 사용자의 경우에는 본인 정보만 볼 수 있습니다.
+      tags: [users]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 성공적으로 도서관 사용자 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: 올바르지 않은 user_id를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 해당 자원에 대한 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 찾은 도서관 사용자 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /books:
+    get:
+      summary: 도서관에 존재하는 모든 도서 리스트 조회
+      tags: [ books ]
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: title
+          schema:
+            type: string
+          required: false
+          description: 검색하고자 하는 도서 이름
+        - in: query
+          name: author
+          schema:
+            type: string
+          required: false
+          description: 검색하고자 하는 도서 작가
+        - in: query
+          name: tag
+          schema:
+            type: string
+          required: false
+          description: 검색하고자 하는 도서 태그 (중복해서 태그 추가 가능)
+        - in: query
+          name: tag_option
+          schema:
+            type: string
+            enum: [and, or]
+          required: false
+          description: 만약 tag를 중복하여 2개 이상 추가한 경우, 검색하고자 하는 도서 태그의 연산자 (and, or)를 반드시 추가해야 합니다.
+        - in: query
+          name: page_size
+          schema:
+            type: integer
+          required: false
+          description: 요청 당 반환하는 최대 페이지(데이터)수를 결정할 수 있습니다.
+        - in: query
+          name: order_by
+          schema:
+            type: string
+            enum: [title, -title, published_at, -published_at]
+          required: false
+          description: 제목 또는 출판일 순에 따른 정렬 조건을 지정합니다.
+
+      responses:
+        '200':
+          description: 성공적으로 도서 리스트 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaginatedBookResponse'
+        '204':
+          description: 도서관에 도서가 하나도 없는 경우
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 해당 자원에 대한 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: 도서 정보 생성
+      tags: [books]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: 도서 정보 생성 시 필요한 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreate'
+      responses:
+        '201':
+          description: 성공적으로 도서 정보를 생성한 경우
+        '400':
+          description: 올바르지 않은 도서 정보를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /books/{book_id}:
+    get:
+      summary: BOOK_ID를 사용하여 특정 도서 정보 조회
+      tags: [ books ]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 성공적으로 도서 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookResponse'
+        '400':
+          description: 올바르지 않은 BOOK_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 해당 자원에 대한 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: ID에 해당하는 도서 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: 도서 전체 정보 수정
+      tags: [ books ]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 도서 정보 수정 시 필요한 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdate'
+        required: true
+      responses:
+        '200':
+          description: 성공적으로 도서 정보를 수정한 경우
+        '400':
+          description: 올바르지 않은 BOOK_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 해당 자원에 대한 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: ID에 해당하는 도서 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: 도서 일부 정보 수정
+      tags: [ books ]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        description: 도서 정보 수정 시 필요한 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdate'
+        required: true
+      responses:
+        '200':
+          description: 성공적으로 도서 정보를 수정한 경우
+        '400':
+          description: 올바르지 않은 BOOK_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 해당 자원에 대한 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: ID에 해당하는 도서 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: 도서 삭제
+      tags: [ books ]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 성공적으로 도서 정보를 삭제한 경우
+        '400':
+          description: 올바르지 않은 BOOK_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 해당 도서가 존재하지 않는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /books/{book_id}/tags:
+    get:
+      summary: 해당 도서의 태그 목록 가져오기
+      tags: [ books ]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 성공적으로 도서 태그 목록를 가져오는 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagResponse'
+
+  /tags:
+    get:
+      summary: 전체 태그 리스트 조회
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: 성공적으로 태그 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TagResponse'
+        '204':
+          description: 데이터베이스에 태그 정보가 하나도 없는 경우
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: 태그 생성
+      tags: [ tags ]
+      requestBody:
+        required: true
+        description: 태그 생성 시 필요한 정보
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+      responses:
+        '201':
+          description: 성공적으로 태그를 생성한 경우
+        '400':
+          description: 올바르지 않은 태그 이름을 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tags/{tag_id}:
+    get:
+      summary: TAG_ID를 사용하여 특정 대출 정보 조회
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 성공적으로 태그 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '400':
+          description: 올바르지 않은 TAG_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: TAG_ID에 해당하는 대출 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: 태그 정보 수정 (관리자만 접근 가능)
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+      responses:
+        '200':
+          description: 성공적으로 태그 정보를 수정한 경우
+        '400':
+          description: 올바르지 않은 태그 정보를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: TAG_ID에 해당하는 태그 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: 태그 삭제 (관리자만 접근 가능)
+      tags: [ tags ]
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 성공적으로 태그 정보를 삭제한 경우
+        '400':
+          description: 올바르지 않은 TAG_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: TAG_ID에 해당하는 태그 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /loans:
+    get:
+      summary: 대출 리스트 조회
+      tags: [ loans ]
+      description: 본인의 대출 데이터를 가져옵니다. 만약 요청한 사용자가 관리자인 경우, 데이터베이스에 존재하는 모든 대출 리스트를 반환합니다.
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: 성공적으로 도서 대출 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanResponse'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      summary: 도서 대출 생성
+      tags: [ loans ]
+      description:
+        도서 대출 정보를 생성하는 API입니다.
+        JWT 토큰 Payload에 존재하는 user_id를 사용하여 어떤 사용자가 대출을 수행하는지 식별할 수 있으므로 request body에 넣지 않습니다.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreate'
+      responses:
+        '201':
+          description: 성공적으로 도서 대출 정보를 생성한 경우
+        '400':
+          description: 올바르지 않은 대출 정보를 제공한 경우, 서버에 저장된 도서의 수량보다 더 많은 수량으로 요청을 하는 경우, ...
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /loans/{loan_id}:
+    get:
+      summary: LOAN_ID를 사용하여 특정 대출 정보 조회
+      tags: [loans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: loan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 성공적으로 대출 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanResponse'
+        '400':
+          description: 올바르지 않은 LOAN_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: LOAN_ID에 해당하는 대출 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: 대출 반납 (대출 정보 수정)
+      tags: [ loans ]
+      description: 대출 반납 요청 시 quantity를 함께 담아 요청합니다. 해당 quantity 값은 서버측의 quantity 값과의 차이를 식별하기 위해 검증하는 값으로, 데이터베이스의 무결성을 위해 필요합니다.
+        quantity가 데이터베이스에 존재하는 값과 일치한다면 is_returned 필드가 true로 변경됩니다.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: loan_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanUpdate'
+      responses:
+        '200':
+          description: 성공적으로 대출 정보를 수정한 경우
+        '400':
+          description: 올바르지 않은 대출 정보를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 컨텐츠 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: LOAN_ID에 해당하는 대출 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /loans/books/{book_id}:
+    get:
+      summary: BOOK_ID를 사용하여 특정 도서의 대출 정보 조회
+      tags: [loans]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 성공적으로 특정 도서의 대출 정보를 조회한 경우
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanResponse'
+        '400':
+          description: 올바르지 않은 BOOK_ID를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: 해당 자원에 대한 접근 권한이 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: ID에 해당하는 도서 정보가 없는 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: 로그인 요청 엔드포인트 (JWT 토큰 발급 요청)
+      tags: [token]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenCreate'
+      responses:
+        '200':
+          description: 성공적으로 Access/Refresh 토큰을 발급함
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: 올바르지 않은 로그인 정보를 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: 로그아웃 엔드포인트 (JWT 토큰 폐기 요청)
+      tags: [token]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+      responses:
+        '204':
+          description: 성공적으로 토큰을 폐기한 경우
+        '400':
+          description: 올바르지 않은 토큰을 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: ACCESS TOKEN이 제공되지 않은 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /token/refresh:
+    post:
+      summary: 유효한 Refresh 토큰을 사용해서 Access 토큰 재발급
+      tags: [token]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+      responses:
+        '200':
+          description: 성공적으로 Access 토큰을 재발급함
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          description: 올바르지 않은 Refresh 토큰을 제공한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 백엔드 서버에서 오류가 발생한 경우
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 사용자 Email
+        username:
+          type: string
+          description: 사용자 이름
+        password:
+          type: string
+          description: 사용자 패스워드
+    UserResponse:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          description: 사용자 ID
+        email:
+          type: string
+          description: 사용자@email
+        username:
+          type: string
+          description: 사용자 이름
+
+    BookCreate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 도서 이름
+        isbn:
+          type: string
+          description: 도서 ISBN
+        author:
+          type: string
+          description: 도서 작가
+        publisher:
+          type: string
+          description: 도서 출판사
+        stock:
+          type: integer
+          format: int64
+          description: 재고 수
+        published_at:
+          type: string
+          format: date
+          description: 도서 출판일
+        tags:
+          type: array
+          items:
+            type: integer
+            description: 도서 태그 ID
+    BookResponse:
+      type: object
+      properties:
+        book_id:
+          type: integer
+          format: int64
+          description: 도서 ID
+          readOnly: true
+        title:
+          type: string
+          description: 도서 이름
+        isbn:
+          type: string
+          description: 도서 ISBN
+        author:
+          type: string
+          description: 도서 작가
+        publisher:
+          type: string
+          description: 도서 출판사
+        stock:
+          type: integer
+          format: int64
+          description: 재고 수
+        published_at:
+          type: string
+          format: date
+          description: 도서 출판일
+        tags:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/TagResponse'
+    BookUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 도서 이름
+        isbn:
+          type: string
+          description: 도서 ISBN
+        author:
+          type: string
+          description: 도서 작가
+        publisher:
+          type: string
+          description: 도서 출판사
+        stock:
+          type: integer
+          format: int64
+          description: 재고 수
+        published_at:
+          type: string
+          format: date
+          description: 도서 출판일
+
+    LoanCreate:
+      type: object
+      properties:
+        book_id:
+          type: integer
+          format: int64
+          description: 도서 ID
+        quantity:
+          type: integer
+          description: 대출 수
+    LoanResponse:
+      type: object
+      properties:
+        loan_id:
+          type: integer
+          format: int64
+          description: 대출 ID
+        user_id:
+          type: integer
+          format: int64
+          description: 사용자 ID
+        book_id:
+          type: integer
+          format: int64
+          description: 도서 ID
+        quantity:
+          type: integer
+          format: int64
+          description: 대출 수
+        is_returned:
+          type: boolean
+          description: 반납 여부
+    LoanUpdate:
+      type: object
+      properties:
+        quantity:
+          type: integer
+          description: 대출 수
+
+    TokenCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          description: 사용자 Email
+        password:
+          type: string
+          description: 사용자 패스워드
+    TokenRefresh:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          description: REFRESH TOKEN
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: ACCESS TOKEN
+        refresh_token:
+          type: string
+          description: REFRESH TOKEN
+
+    TagResponse:
+      type: object
+      properties:
+        tag_id:
+          type: integer
+          format: int64
+          description: 태그 ID
+        name:
+          type: string
+          description: 태그 이름
+    TagCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 태그 이름
+
+    PaginatedBookResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int64
+          description: 전체 데이터 개수
+        next:
+          type: string
+          description: 다음 포인터
+        previous:
+          type: string
+          description: 전표 포인터
+        results:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/BookResponse'
+
+    Error:
+      type: object
+      properties:
+        error_type:
+          type: string
+          description: 백엔드 어플리케이션에서 발생한 에러 타입
+        error_message:
+          type: string
+          description: 백엔드 어플리케이션에서 발생한 에러에 대한 메세지
