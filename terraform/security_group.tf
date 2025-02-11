@@ -24,6 +24,22 @@ resource "aws_vpc_security_group_ingress_rule" "allow_ssh_port" {
   to_port           = 22
 }
 
+resource "aws_vpc_security_group_ingress_rule" "allow_grafana_port" {
+  security_group_id = aws_security_group.library_sg.id
+  cidr_ipv4         = "0.0.0.0/0" # 외부에서 접근이 가능해야함 (본인만 접근하는거면 django처럼 지정해도 됨)
+  from_port         = 3000
+  ip_protocol       = "tcp"
+  to_port           = 3000
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_cadvisor_port" { # 필요는 없는데, 브라우저로 접근해서 동작하는지 확인하려고 넣었음
+  security_group_id = aws_security_group.library_sg.id
+  cidr_ipv4         = "0.0.0.0/0" # 외부에서 접근이 가능해야함 (본인만 접근하는거면 django처럼 지정해도 됨)
+  from_port         = 3000
+  ip_protocol       = "tcp"
+  to_port           = 3000
+}
+
 resource "aws_vpc_security_group_egress_rule" "default_egress" {
   security_group_id = aws_security_group.library_sg.id
   cidr_ipv4         = "0.0.0.0/0"
