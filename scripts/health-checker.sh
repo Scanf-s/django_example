@@ -1,4 +1,3 @@
-# shellcheck disable=SC2155
 export BACKEND_IMAGE=$(cat current-backend-image.txt)
 echo "✋ Health check for $BACKEND_IMAGE"
 
