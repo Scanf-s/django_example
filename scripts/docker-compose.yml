@@ -1,0 +1,39 @@
+services:
+
+  redis:
+    image: redis:latest
+    command: ["redis-server", "--save", "", "--loglevel", "warning"]
+    ports:
+      - "6379:6379"
+    networks:
+      - container_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 1
+      start_period: 10s
+
+  backend:
+    image: "${BACKEND_IMAGE}"
+    ports:
+      - "8000:8000"
+    env_file:
+      - ".env"
+    networks:
+      - container_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: curl --fail http://127.0.0.1:8000/api/v1/common/health-check || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 1
+      start_period: 10s
+
+networks:
+  container_network:
+    driver: bridge

@@ -1,0 +1,68 @@
+name: Deploy
+
+on:
+  pull_request:
+    branches:
+      - 3.cicd-and-deploy
+    types:
+      - closed
+
+jobs:
+  deploy:
+    name: Deploy Docker image to ECR and Run docker image in EC2 instance
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 코드 Checkout
+        uses: actions/checkout@v4
+
+      - name: AWS Credentials 가져오기
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: AWS ECR 로그인
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: 백엔드 도커 이미지 생성 및 배포
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # 도커 이미지 생성
+          docker build --no-cache -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+
+          # ECR로 commit sha 태그 이미지 PUSH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: EC2에 배포 및 백엔드 어플리케이션 실행
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }} && \
+            export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }} && \
+            export IMAGE_TAG=${{ github.sha }} && \
+            export BACKEND_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" && \
+            ./deploy.sh
+
+      - name: 배포 결과 확인
+        if: always()
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+            export ECR_REPOSITORY=${{ secrets.ECR_REPOSITORY_NAME }}
+            export IMAGE_TAG=${{ github.sha }}
+            export BACKEND_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+            ./health-checker.sh
