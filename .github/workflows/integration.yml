@@ -97,10 +97,6 @@ jobs:
           cat combined.txt >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Jot output 설정
-        id: set_output
-        run: echo "test_results=${{ steps.combine_results.outputs.test_results }}" >> $GITHUB_OUTPUT
-
 
   AUTO_PR:
     runs-on: ubuntu-latest
