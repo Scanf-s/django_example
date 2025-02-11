@@ -6,7 +6,7 @@ on:
       - uijong/*
 
 jobs:
-  Auto_Pull_Request:
+  AUTO_PR:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,51 +26,51 @@ jobs:
             ## 코드 수정 내용
             - Hello 123
 
-#  test:
-#    name: Django API Test
-#    runs-on: ubuntu-latest
-#    env:
-#      DJANGO_SETTINGS_MODULE: "config.settings"
-#      DJANGO_DEBUG_MODE: true
-#      SECRET_KEY: {{ secrets.SECRET_KEY }} # Django secret key
-#      JWT_SECRET_KEY: {{ secrets.JWT_SECRET_KEY }} # JWT secret key
-#      JWT_ALGORITHM: {{ secrets.JWT_ALGORITHM }} # JWT algorithm
-#
-#    strategy:
-#      matrix:
-#        test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
-#
-#    steps:
-#      - name: 레포지토리 Checkout
-#        uses: actions/checkout@v4
-#
-#      - name: Python 3.12 설정
-#        uses: actions/setup-python@v3
-#        with:
-#          python-version: "3.12"
-#
-#      - name: Poetry 설치
-#        run: |
-#          curl -sSL https://install.python-poetry.org | python3 -
-#          export PATH="$HOME/.local/bin:$PATH"
-#
-#      - name: 라이브러리 설치
-#        run: |
-#          poetry install --no-root
-#        shell: bash
-#
-#      - name: 코드 스타일 검사 (isort)
-#        run: |
-#          poetry run isort . --check-only
-#
-#      - name: 코드 스타일 검사 (black)
-#        run: |
-#          poetry run black . --check
-#
-#      - name: 임시 데이터베이스 Migration
-#        run: |
-#          poetry run python manage.py migrate
-#
-#      - name: Django 테스트 실행
-#        run: |
-#          poetry run python manage.py test ${{ matrix.test_modules }}
+  TEST:
+    name: Django Module Test
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: "config.settings"
+      DJANGO_DEBUG_MODE: true
+      SECRET_KEY: {{ secrets.SECRET_KEY }} # Django secret key
+      JWT_SECRET_KEY: {{ secrets.JWT_SECRET_KEY }} # JWT secret key
+      JWT_ALGORITHM: {{ secrets.JWT_ALGORITHM }} # JWT algorithm
+
+    strategy:
+      matrix:
+        test_modules: ["user", "book", "loan", "tag", "jwt_auth"]
+
+    steps:
+      - name: 레포지토리 Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.12 설정
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.12"
+
+      - name: Poetry 설치
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          export PATH="$HOME/.local/bin:$PATH"
+
+      - name: 라이브러리 설치
+        run: |
+          poetry install --no-root
+        shell: bash
+
+      - name: 코드 스타일 검사 (isort)
+        run: |
+          poetry run isort . --check-only
+
+      - name: 코드 스타일 검사 (black)
+        run: |
+          poetry run black . --check
+
+      - name: 임시 데이터베이스 Migration
+        run: |
+          poetry run python manage.py migrate
+
+      - name: Django 테스트 실행
+        run: |
+          poetry run python manage.py test ${{ matrix.test_modules }}
