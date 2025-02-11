@@ -111,7 +111,7 @@ jobs:
           commit-message: Update report
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
-          base: 3.cicd-and-deploy
+          base: 4.monitoring
           branch: ${{ github.ref }}
           assignees: ${{ github.actor }}
           title: 코드 리뷰 요청
