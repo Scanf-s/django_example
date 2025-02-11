@@ -8,4 +8,5 @@ urlpatterns = [
     path("api/v1/tags", include("tag.urls")),
     path("api/v1/loans", include("loan.urls")),
     path("api/v1/common", include("common.urls")),
+    path("", include('django_prometheus.urls')),
 ]
