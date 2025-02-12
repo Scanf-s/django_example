@@ -9,12 +9,12 @@ services:
       - container_network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
-      retries: 3
-      start_period: 30s
+      retries: 1
+      start_period: 10s
 
-  backend: # Django
+  backend:
     image: "${BACKEND_IMAGE}"
     ports:
       - "8000:8000"
@@ -24,8 +24,6 @@ services:
       - container_network
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    volumes:
-      - sqlite_db:/app
     depends_on:
       redis:
         condition: service_healthy
@@ -36,9 +34,52 @@ services:
       retries: 1
       start_period: 10s
 
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend
+    networks:
+      - container_network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - container_network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - container_network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+    networks:
+      - container_network
+
 networks:
   container_network:
     driver: bridge
-
-volumes:
-  sqlite_db:
