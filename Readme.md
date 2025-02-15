@@ -3,8 +3,8 @@
 ## 사전 구성
 
 - 기존 3번 branch에서 진행했던 EC2에 존재하는 docker-compose.yml을 4번 branch의 scripts/docker-compose.yml로 대체합니다.
-- prometheus, grafana, cadvisor 컨테이너가 필요하여, 구성이 변경되었습니다.
-- terraform 또는 AWS 콘솔에서 library security group의 3000번 포트, 8080번 포트를 열어주세요
+- prometheus, grafana, cadvisor, node-exporter 컨테이너가 필요하여, docker compose 구성이 변경되었습니다.
+- terraform 또는 AWS 콘솔에서 library security group의 3000번 포트, 8080번 포트 등...을 취향에 맞게 열어주세요
 
 ## Grafana Dashboard 예시
 
